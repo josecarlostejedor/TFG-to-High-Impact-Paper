@@ -46,7 +46,7 @@ export interface TransformationResult {
 }
 
 export async function analyzeTFG(tfgText: string) {
-  const model = "gemini-3.1-pro-preview";
+  const model = "gemini-3-flash-preview";
   const prompt = `Analyze the following undergraduate thesis (TFG) and extract its core components: 
   objective, methodology, key results, and main conclusions. 
   Also, provide a "rigor diagnosis" identifying weaknesses for a high-impact journal.
@@ -73,7 +73,7 @@ export async function analyzeTFG(tfgText: string) {
 }
 
 export async function generateArticle(tfgText: string, journalRules: JournalRules) {
-  const model = "gemini-3.1-pro-preview";
+  const model = "gemini-3-flash-preview";
   const prompt = `You are a world-class scientific editor and researcher specialized in high-impact medical journals. 
   
   TASK: Transform the provided Undergraduate Thesis (TFG) into a COMPREHENSIVE, DEEP, and RIGOROUS Original Research article for the journal "${journalRules.name}".
@@ -162,7 +162,7 @@ export async function generateArticle(tfgText: string, journalRules: JournalRule
 }
 
 export async function refineArticle(currentArticle: string, instructions: string, journalRules: JournalRules) {
-  const model = "gemini-3.1-pro-preview";
+  const model = "gemini-3-flash-preview";
   const prompt = `Refine the following scientific article based on these instructions: "${instructions}".
   
   CRITICAL RULES:
