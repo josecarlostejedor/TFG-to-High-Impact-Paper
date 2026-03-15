@@ -13,18 +13,33 @@ const ai = new GoogleGenAI({ apiKey: getApiKey() });
 export interface JournalRules {
   name: string;
   rulesText: string;
+  modelArticleText?: string;
 }
 
 export interface TransformationResult {
   title: string;
-  abstract: string;
+  titleProposals: string[]; // 3 proposals for the user to choose
+  authorMetadata: string; // Normalization recommendations (IraLIS, FECYT, ORCID)
+  abstract: string; // Structured: Background, Objective, Study Design, Results, Conclusion
   keywords: string[];
+  atAGlance: string; // Three points: Why conducted, Key findings, What adds
   introduction: string;
-  methods: string;
-  results: string;
-  discussion: string;
+  methods: string; // Subsections: Study Population, Data Collection, Exposure, Statistical Analysis
+  results: string; // Including [TABLE X] and [FIGURE X] placeholders
+  discussion: string; // Subsections: Principal Findings, Context, Clinical Implications, Strengths and Limitations
   conclusions: string;
-  references: string;
+  acknowledgments?: string;
+  creditStatement?: string;
+  references: string; // Each on a new line, NO HTML TAGS
+  tables?: string; // Extracted and formatted tables, NO HTML TAGS
+  visualInventory: {
+    type: 'table' | 'figure';
+    id: string;
+    title: string;
+    description: string;
+    recommendedLocation: string;
+    formatRequired: string;
+  }[];
   coverLetter: string;
   checklist: string[];
   diagnosis: string;
@@ -59,16 +74,42 @@ export async function analyzeTFG(tfgText: string) {
 
 export async function generateArticle(tfgText: string, journalRules: JournalRules) {
   const model = "gemini-3.1-pro-preview";
-  const prompt = `You are an expert scientific editor. Transform the following TFG into a high-impact journal article for the journal "${journalRules.name}".
+  const prompt = `You are a world-class scientific editor and researcher specialized in high-impact medical journals. 
   
-  STRICTLY FOLLOW THESE RULES:
-  1. ADAPTATION: Use the provided journal rules: ${journalRules.rulesText.substring(0, 10000)}
-  2. RIGOR: Ensure high scientific rigor (reproducible methods, robust stats, critical discussion).
-  3. STRUCTURE: Use IMRyD+ (Introduction, Methods, Results, Discussion, Conclusions).
-  4. METADATA: Generate title, abstract, keywords, and cover letter.
-  5. LANGUAGE: Provide the output in English.
+  TASK: Transform the provided Undergraduate Thesis (TFG) into a COMPREHENSIVE, DEEP, and RIGOROUS Original Research article for the journal "${journalRules.name}".
   
-  TFG Text: ${tfgText.substring(0, 20000)}...`;
+  CRITICAL PILLARS:
+  1. ADAPTACIÓN ESTRICTA A LA REVISTA: The manuscript must be a "tailor-made suit" for ${journalRules.name}. Apply every rule from the provided "Guide for Authors".
+  2. RIGOR CIENTÍFICO ABSOLUTO: Impeccable methodology, robust statistics, critical discussion. Identify and address weaknesses.
+  3. NO HTML TAGS: Do NOT use any HTML tags like <br>, <b>, <table>, etc. in any text field. Use plain text with standard line breaks.
+  
+  SISTEMA DE GESTIÓN DE TABLAS E IMÁGENES:
+  1. IDENTIFICACIÓN: Create a detailed "visualInventory" of all tables and figures found in the TFG.
+  2. UBICACIÓN: Mark their recommended location in the text with placeholders like "[INSERT TABLE X]".
+  3. FORMATEO: For tables, provide a clear text-based representation (not HTML) that follows the journal's style.
+  
+  ${journalRules.modelArticleText ? `
+  ADVANCED ANALYSIS BASED ON MODEL ARTICLE:
+  Analyze the provided model article to extract:
+  - EXACT STRUCTURE: Sections and subsections.
+  - TABLE FORMAT: Headers, bolding, statistical data (OR, CI95%, p-values).
+  - FIGURE STYLE: Legends and titles.
+  - WRITING STYLE: Voice, paragraph length, transitions.
+  - REFERENCE STYLE: In-text and bibliography format.
+  
+  Model Article Text: ${journalRules.modelArticleText.substring(0, 15000)}
+  ` : ""}
+  
+  CONTENT GUIDELINES:
+  - EXTENSION: Aim for 3000-5000 words. EXPAND the TFG, do not just summarize it.
+  - METADATA: Provide 3 title proposals. Include author normalization recommendations (IraLIS/FECYT).
+  - INTRODUCTION: Use the "funnel" structure (Context -> State of the Art -> Gap -> Hypothesis/Objective).
+  - METHODS: Surgical detail on Design, Population, Variables, Procedures, and Statistical Analysis. Use new lines (punto y aparte) for each subsection (e.g., STUDY POPULATION:\n[Text]\n\nDATA COLLECTION:\n[Text]).
+  - RESULTS: Narrative flow with explicit table/figure references. Include ALL stats (p-values, CIs).
+  - DISCUSSION: Deep interpretation (Findings -> Context -> Implications -> Limitations -> Strengths).
+  - BIBLIOGRAPHY: Extract ALL references from the TFG (usually 15-20+). Use the EXACT format "1- [Reference text]" and put each on a NEW LINE. NO HTML.
+  
+  TFG Text: ${tfgText.substring(0, 28000)}...`;
 
   const response = await ai.models.generateContent({
     model,
@@ -79,19 +120,40 @@ export async function generateArticle(tfgText: string, journalRules: JournalRule
         type: Type.OBJECT,
         properties: {
           title: { type: Type.STRING },
+          titleProposals: { type: Type.ARRAY, items: { type: Type.STRING } },
+          authorMetadata: { type: Type.STRING },
           abstract: { type: Type.STRING },
           keywords: { type: Type.ARRAY, items: { type: Type.STRING } },
+          atAGlance: { type: Type.STRING },
           introduction: { type: Type.STRING },
           methods: { type: Type.STRING },
           results: { type: Type.STRING },
           discussion: { type: Type.STRING },
           conclusions: { type: Type.STRING },
+          acknowledgments: { type: Type.STRING },
+          creditStatement: { type: Type.STRING },
           references: { type: Type.STRING },
+          tables: { type: Type.STRING },
+          visualInventory: {
+            type: Type.ARRAY,
+            items: {
+              type: Type.OBJECT,
+              properties: {
+                type: { type: Type.STRING, enum: ['table', 'figure'] },
+                id: { type: Type.STRING },
+                title: { type: Type.STRING },
+                description: { type: Type.STRING },
+                recommendedLocation: { type: Type.STRING },
+                formatRequired: { type: Type.STRING }
+              },
+              required: ['type', 'id', 'title', 'description', 'recommendedLocation', 'formatRequired']
+            }
+          },
           coverLetter: { type: Type.STRING },
           checklist: { type: Type.ARRAY, items: { type: Type.STRING } },
           diagnosis: { type: Type.STRING },
         },
-        required: ["title", "abstract", "keywords", "introduction", "methods", "results", "discussion", "conclusions", "references", "coverLetter", "checklist", "diagnosis"],
+        required: ["title", "titleProposals", "authorMetadata", "abstract", "keywords", "atAGlance", "introduction", "methods", "results", "discussion", "conclusions", "references", "visualInventory", "coverLetter", "checklist", "diagnosis"],
       },
     },
   });
@@ -102,7 +164,14 @@ export async function generateArticle(tfgText: string, journalRules: JournalRule
 export async function refineArticle(currentArticle: string, instructions: string, journalRules: JournalRules) {
   const model = "gemini-3.1-pro-preview";
   const prompt = `Refine the following scientific article based on these instructions: "${instructions}".
-  Maintain strict adherence to the journal rules for "${journalRules.name}": ${journalRules.rulesText.substring(0, 5000)}.
+  
+  CRITICAL RULES:
+  1. ADAPTACIÓN ESTRICTA A LA REVISTA: Maintain strict adherence to the journal rules for "${journalRules.name}".
+  2. RIGOR CIENTÍFICO: Ensure high academic standards.
+  3. NO HTML TAGS: Do NOT use any HTML tags in any text field.
+  4. VISUAL INVENTORY: Update the visual inventory if the instructions affect tables or figures.
+  5. METHODS FORMAT: Use new lines for subsections (e.g., STUDY POPULATION:\n[Text]).
+  6. BIBLIOGRAPHY: Extract ALL references. Use the format "1- [Reference text]" on new lines.
   
   Current Article: ${currentArticle.substring(0, 20000)}...`;
 
@@ -115,19 +184,40 @@ export async function refineArticle(currentArticle: string, instructions: string
         type: Type.OBJECT,
         properties: {
           title: { type: Type.STRING },
+          titleProposals: { type: Type.ARRAY, items: { type: Type.STRING } },
+          authorMetadata: { type: Type.STRING },
           abstract: { type: Type.STRING },
           keywords: { type: Type.ARRAY, items: { type: Type.STRING } },
+          atAGlance: { type: Type.STRING },
           introduction: { type: Type.STRING },
           methods: { type: Type.STRING },
           results: { type: Type.STRING },
           discussion: { type: Type.STRING },
           conclusions: { type: Type.STRING },
+          acknowledgments: { type: Type.STRING },
+          creditStatement: { type: Type.STRING },
           references: { type: Type.STRING },
+          tables: { type: Type.STRING },
+          visualInventory: {
+            type: Type.ARRAY,
+            items: {
+              type: Type.OBJECT,
+              properties: {
+                type: { type: Type.STRING, enum: ['table', 'figure'] },
+                id: { type: Type.STRING },
+                title: { type: Type.STRING },
+                description: { type: Type.STRING },
+                recommendedLocation: { type: Type.STRING },
+                formatRequired: { type: Type.STRING }
+              },
+              required: ['type', 'id', 'title', 'description', 'recommendedLocation', 'formatRequired']
+            }
+          },
           coverLetter: { type: Type.STRING },
           checklist: { type: Type.ARRAY, items: { type: Type.STRING } },
           diagnosis: { type: Type.STRING },
         },
-        required: ["title", "abstract", "keywords", "introduction", "methods", "results", "discussion", "conclusions", "references", "coverLetter", "checklist", "diagnosis"],
+        required: ["title", "titleProposals", "authorMetadata", "abstract", "keywords", "atAGlance", "introduction", "methods", "results", "discussion", "conclusions", "references", "visualInventory", "coverLetter", "checklist", "diagnosis"],
       },
     },
   });
