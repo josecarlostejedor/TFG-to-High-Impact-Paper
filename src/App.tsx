@@ -12,7 +12,8 @@ import {
   Loader2,
   Languages,
   FileCheck,
-  RotateCcw
+  RotateCcw,
+  BarChart3
 } from "lucide-react";
 import { useDropzone } from "react-dropzone";
 import { motion, AnimatePresence } from "motion/react";
@@ -20,8 +21,11 @@ import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
 import { analyzeTFG, generateArticle, refineArticle, type TransformationResult, type JournalRules } from "./lib/gemini";
 import * as pdfjs from "pdfjs-dist";
+// @ts-ignore
 import pdfWorker from "pdfjs-dist/build/pdf.worker.mjs?url";
 import mammoth from "mammoth";
+import { Document, Packer, Paragraph, TextRun, HeadingLevel, AlignmentType, Footer, PageNumber } from "docx";
+import { saveAs } from "file-saver";
 
 // Set up PDF.js worker using local worker bundled by Vite
 pdfjs.GlobalWorkerOptions.workerSrc = pdfWorker;
@@ -34,8 +38,10 @@ export default function App() {
   const [tfgText, setTfgText] = useState<string>("");
   const [journalName, setJournalName] = useState<string>("");
   const [journalRulesText, setJournalRulesText] = useState<string>("");
+  const [modelArticleText, setModelArticleText] = useState<string>("");
   const [tfgFileName, setTfgFileName] = useState<string>("");
   const [rulesFileName, setRulesFileName] = useState<string>("");
+  const [modelArticleFileName, setModelArticleFileName] = useState<string>("");
   const [isGenerating, setIsGenerating] = useState(false);
   const [isParsing, setIsParsing] = useState(false);
   const [progress, setProgress] = useState(0);
@@ -51,8 +57,10 @@ export default function App() {
     setTfgText("");
     setJournalName("");
     setJournalRulesText("");
+    setModelArticleText("");
     setTfgFileName("");
     setRulesFileName("");
+    setModelArticleFileName("");
     setResult(null);
     setRefinementInstructions("");
     setProgress(0);
@@ -162,6 +170,57 @@ export default function App() {
     }
   }, []);
 
+  const onDropModelArticle = useCallback(async (acceptedFiles: File[]) => {
+    const file = acceptedFiles[0];
+    if (!file) return;
+
+    setModelArticleFileName(file.name);
+    setModelArticleText(""); 
+    setIsParsing(true);
+    setError(null);
+    
+    try {
+      let extractedText = "";
+
+      if (file.type === "application/pdf") {
+        const arrayBuffer = await file.arrayBuffer();
+        const loadingTask = pdfjs.getDocument({ data: arrayBuffer });
+        const pdf = await loadingTask.promise;
+        let fullText = "";
+        
+        for (let i = 1; i <= pdf.numPages; i++) {
+          const page = await pdf.getPage(i);
+          const textContent = await page.getTextContent();
+          const pageText = textContent.items
+            .map((item: any) => item.str)
+            .join(" ");
+          fullText += pageText + "\n";
+        }
+        extractedText = fullText;
+      } 
+      else if (file.type === "application/vnd.openxmlformats-officedocument.wordprocessingml.document") {
+        const arrayBuffer = await file.arrayBuffer();
+        const result = await mammoth.extractRawText({ arrayBuffer });
+        extractedText = result.value;
+      } 
+      else {
+        extractedText = await file.text();
+      }
+
+      if (!extractedText || extractedText.trim().length === 0) {
+        throw new Error("No text could be extracted from the model article file.");
+      }
+
+      setModelArticleText(extractedText);
+    } catch (err: any) {
+      console.error("Error reading model article:", err);
+      setError(`Error reading model article: ${err.message}`);
+      setModelArticleFileName("");
+    } finally {
+      setIsParsing(false);
+    }
+  }, []);
+
   // @ts-ignore
   const { getRootProps: getTFGProps, getInputProps: getTFGInputProps, isDragActive: isTFGActive } = useDropzone({ 
     onDrop: onDropTFG,
@@ -176,6 +235,17 @@ export default function App() {
   // @ts-ignore
   const { getRootProps: getRulesProps, getInputProps: getRulesInputProps, isDragActive: isRulesActive } = useDropzone({ 
     onDrop: onDropRules,
+    multiple: false,
+    accept: {
+      'text/plain': ['.txt'],
+      'application/pdf': ['.pdf'],
+      'application/vnd.openxmlformats-officedocument.wordprocessingml.document': ['.docx']
+    }
+  });
+
+  // @ts-ignore
+  const { getRootProps: getModelProps, getInputProps: getModelInputProps, isDragActive: isModelActive } = useDropzone({ 
+    onDrop: onDropModelArticle,
     multiple: false,
     accept: {
       'text/plain': ['.txt'],
@@ -217,7 +287,11 @@ export default function App() {
     }, 500);
 
     try {
-      const res = await generateArticle(tfgText, { name: journalName, rulesText: journalRulesText });
+      const res = await generateArticle(tfgText, { 
+        name: journalName, 
+        rulesText: journalRulesText,
+        modelArticleText: modelArticleText || undefined
+      });
       setResult(res);
       setProgress(100);
       setStatusMessage("Manuscript ready!");
@@ -235,7 +309,11 @@ export default function App() {
     setIsGenerating(true);
     try {
       const currentFullText = JSON.stringify(result);
-      const res = await refineArticle(currentFullText, refinementInstructions, { name: journalName, rulesText: journalRulesText });
+      const res = await refineArticle(currentFullText, refinementInstructions, { 
+        name: journalName, 
+        rulesText: journalRulesText,
+        modelArticleText: modelArticleText || undefined
+      });
       setResult(res);
       setRefinementInstructions("");
     } catch (error) {
@@ -279,13 +357,253 @@ ${result.discussion}
 CONCLUSIONS:
 ${result.conclusions}
 
+${result.acknowledgments ? `ACKNOWLEDGMENTS:
+${result.acknowledgments}
+` : ""}
+
+${result.creditStatement ? `CRediT AUTHORSHIP CONTRIBUTION STATEMENT:
+${result.creditStatement}
+` : ""}
+
 REFERENCES:
 ${result.references}
+
+${result.tables ? `TABLES:
+${result.tables}
+` : ""}
 
 COVER LETTER:
 ${result.coverLetter}
     `;
     downloadFile(content, `Manuscript_${lang}_${journalName.replace(/\s+/g, '_')}.txt`);
+  };
+
+  const downloadWordArticle = async () => {
+    if (!result) return;
+
+    const stripHtml = (text: string) => {
+      return text.replace(/<[^>]*>?/gm, '');
+    };
+
+    const createParagraphs = (text: string, isReference = false, isTableList = false) => {
+      const cleanText = stripHtml(text);
+      
+      // Split by new lines first
+      let rawLines = cleanText.split('\n').filter(line => line.trim());
+      
+      // If it's not references, we might need to split by subsection headers like "STUDY POPULATION:"
+      if (!isReference && !isTableList) {
+        const processedLines: string[] = [];
+        rawLines.forEach(line => {
+          // Look for "SUBSECTION:" pattern in the middle of a line
+          // But avoid splitting common abbreviations or times if possible
+          // We look for 2+ uppercase words followed by a colon
+          const parts = line.split(/(?=[A-Z]{3,}(?:\s+[A-Z]{3,})*:)/);
+          parts.forEach(p => {
+            if (p.trim()) processedLines.push(p.trim());
+          });
+        });
+        rawLines = processedLines;
+      }
+
+      // Special handling for references that might be clumped together or use different numbering
+      if (isReference) {
+        const processedRefs: string[] = [];
+        const combinedText = rawLines.join(' ');
+        // Split by "1- ", "2- ", "1. ", "2. " etc.
+        const splitRefs = combinedText.split(/(?=\d+[\-.]\s)/);
+        splitRefs.forEach(r => {
+          if (r.trim()) processedRefs.push(r.trim());
+        });
+        if (processedRefs.length > 0) {
+          rawLines = processedRefs;
+        }
+      }
+
+      return rawLines.map((line, index) => {
+        let processedLine = line;
+        if (isTableList) {
+          // Prepend numbering if requested for tables
+          if (!line.trim().match(/^\d+[-.]/)) {
+            processedLine = `${index + 1}- ${line}`;
+          }
+        }
+
+        // Split line by placeholders like [INSERT TABLE 1] or [INSERT FIGURE 2]
+        // AND also look for "TABLE X" or "FIGURE X" to color them maroon
+        const parts = processedLine.split(/(\[INSERT (?:TABLE|FIGURE) \d+\]|TABLE \d+\.?|FIGURE \d+\.?)/g);
+        
+        return new Paragraph({
+          children: parts.map(part => {
+            const isPlaceholder = /^\[INSERT (?:TABLE|FIGURE) \d+\]$/.test(part);
+            const isTableFigureText = /^(?:TABLE|FIGURE) \d+\.?$/.test(part);
+            const shouldHighlight = isPlaceholder || isTableFigureText;
+            
+            return new TextRun({ 
+              text: part, 
+              font: "Times New Roman", 
+              size: 24,
+              bold: shouldHighlight,
+              color: shouldHighlight ? "800000" : undefined, // Maroon color
+            });
+          }),
+          spacing: { after: (isReference || isTableList) ? 240 : 200 },
+          alignment: AlignmentType.JUSTIFIED,
+        });
+      });
+    };
+
+    const doc = new Document({
+      sections: [
+        {
+          properties: {},
+          footers: {
+            default: new Footer({
+              children: [
+                new Paragraph({
+                  alignment: AlignmentType.CENTER,
+                  children: [
+                    new TextRun({
+                      text: "Page ",
+                      font: "Times New Roman",
+                      size: 20,
+                    }),
+                    new TextRun({
+                      children: [PageNumber.CURRENT],
+                      font: "Times New Roman",
+                      size: 20,
+                    }),
+                    new TextRun({
+                      text: " of ",
+                      font: "Times New Roman",
+                      size: 20,
+                    }),
+                    new TextRun({
+                      children: [PageNumber.TOTAL_PAGES],
+                      font: "Times New Roman",
+                      size: 20,
+                    }),
+                  ],
+                }),
+              ],
+            }),
+          },
+          children: [
+            new Paragraph({
+              text: result.title,
+              heading: HeadingLevel.TITLE,
+              alignment: AlignmentType.CENTER,
+              spacing: { after: 400 },
+            }),
+            new Paragraph({
+              text: "ABSTRACT",
+              heading: HeadingLevel.HEADING_1,
+              spacing: { before: 400, after: 200 },
+            }),
+            ...createParagraphs(result.abstract),
+            
+            new Paragraph({
+              text: "AT A GLANCE",
+              heading: HeadingLevel.HEADING_1,
+              spacing: { before: 400, after: 200 },
+            }),
+            ...createParagraphs(result.atAGlance),
+
+            new Paragraph({
+              text: "INTRODUCTION",
+              heading: HeadingLevel.HEADING_1,
+              spacing: { before: 400, after: 200 },
+            }),
+            ...createParagraphs(result.introduction),
+
+            new Paragraph({
+              text: "METHODS",
+              heading: HeadingLevel.HEADING_1,
+              spacing: { before: 400, after: 200 },
+            }),
+            ...createParagraphs(result.methods),
+
+            new Paragraph({
+              text: "RESULTS",
+              heading: HeadingLevel.HEADING_1,
+              spacing: { before: 400, after: 200 },
+            }),
+            ...createParagraphs(result.results),
+
+            new Paragraph({
+              text: "DISCUSSION",
+              heading: HeadingLevel.HEADING_1,
+              spacing: { before: 400, after: 200 },
+            }),
+            ...createParagraphs(result.discussion),
+
+            new Paragraph({
+              text: "CONCLUSIONS",
+              heading: HeadingLevel.HEADING_1,
+              spacing: { before: 400, after: 200 },
+            }),
+            ...createParagraphs(result.conclusions),
+
+            ...(result.acknowledgments ? [
+              new Paragraph({
+                text: "ACKNOWLEDGMENTS",
+                heading: HeadingLevel.HEADING_1,
+                spacing: { before: 400, after: 200 },
+              }),
+              ...createParagraphs(result.acknowledgments)
+            ] : []),
+
+            ...(result.creditStatement ? [
+              new Paragraph({
+                text: "CRediT AUTHORSHIP CONTRIBUTION STATEMENT",
+                heading: HeadingLevel.HEADING_1,
+                spacing: { before: 400, after: 200 },
+              }),
+              ...createParagraphs(result.creditStatement)
+            ] : []),
+
+            new Paragraph({
+              text: "REFERENCES",
+              heading: HeadingLevel.HEADING_1,
+              spacing: { before: 400, after: 200 },
+            }),
+            ...createParagraphs(result.references, true),
+
+            ...(result.tables ? [
+              new Paragraph({
+                text: "TABLES & FIGURES INVENTORY",
+                heading: HeadingLevel.HEADING_1,
+                spacing: { before: 400, after: 200 },
+              }),
+              ...createParagraphs(result.tables, false, true),
+              new Paragraph({
+                text: "Visual Elements Checklist:",
+                heading: HeadingLevel.HEADING_2,
+                spacing: { before: 200, after: 100 },
+              }),
+              ...result.visualInventory.map(item => new Paragraph({
+                children: [
+                  new TextRun({ text: `[ ] ${item.id}: ${item.title}`, bold: true }),
+                  new TextRun({ text: `\nLocation: ${item.recommendedLocation}`, font: "Courier New", size: 18 }),
+                  new TextRun({ text: `\nFormat: ${item.formatRequired}`, font: "Courier New", size: 18 }),
+                ],
+                spacing: { after: 100 },
+              }))
+            ] : []),
+
+            new Paragraph({
+              text: "COVER LETTER",
+              heading: HeadingLevel.HEADING_1,
+              spacing: { before: 400, after: 200 },
+            }),
+            ...createParagraphs(result.coverLetter),
+          ],
+        },
+      ],
+    });
+
+    const blob = await Packer.toBlob(doc);
+    saveAs(blob, `Manuscript_${journalName.replace(/\s+/g, '_')}.docx`);
   };
 
   return (
@@ -468,6 +786,37 @@ ${result.coverLetter}
               </div>
             </section>
 
+            <section className="space-y-4">
+              <div className="flex items-center gap-2 text-sm font-medium text-neutral-500 uppercase tracking-wider">
+                <BookOpen size={16} />
+                Step 3: Model Article (Optional)
+              </div>
+              <div 
+                {...getModelProps()} 
+                className={cn(
+                  "border-2 border-dashed rounded-2xl p-8 transition-all cursor-pointer flex flex-col items-center justify-center gap-4 text-center",
+                  isModelActive ? "border-emerald-500 bg-emerald-50/50" : "border-neutral-200 hover:border-neutral-300 bg-white",
+                  modelArticleText && "border-emerald-500/30 bg-emerald-50/20"
+                )}
+              >
+                <input {...getModelInputProps()} />
+                <div className={cn("w-12 h-12 rounded-full flex items-center justify-center", modelArticleText ? "bg-emerald-100 text-emerald-600" : "bg-neutral-100 text-neutral-400")}>
+                  {isParsing ? <Loader2 className="animate-spin" size={24} /> : (modelArticleText ? <CheckCircle2 size={24} /> : <Upload size={24} />)}
+                </div>
+                <div>
+                  <p className="font-medium">
+                    {isParsing ? "Reading file..." : (modelArticleText ? "Model Article Loaded" : "Upload Example Article")}
+                  </p>
+                  <p className="text-xs text-neutral-400 mt-1">For style & format analysis</p>
+                  {modelArticleFileName && (
+                    <p className="text-xs font-mono text-emerald-600 mt-2 bg-emerald-50 px-2 py-1 rounded inline-block">
+                      {modelArticleFileName}
+                    </p>
+                  )}
+                </div>
+              </div>
+            </section>
+
             <button 
               onClick={handleGenerate}
               disabled={isGenerating || isParsing || !tfgText || !journalName || !journalRulesText}
@@ -546,8 +895,39 @@ ${result.coverLetter}
                           Generated Manuscript for {journalName}
                         </div>
                         <h2 className="text-2xl font-bold leading-tight">{result.title}</h2>
+                        
+                        {result.titleProposals && result.titleProposals.length > 0 && (
+                          <div className="mt-4 p-4 bg-neutral-50 rounded-xl border border-neutral-100">
+                            <p className="text-[10px] font-bold text-neutral-400 uppercase tracking-widest mb-2">Alternative Title Proposals</p>
+                            <ul className="space-y-2">
+                              {result.titleProposals.map((p, i) => (
+                                <li key={i} className="text-sm text-neutral-600 flex gap-2">
+                                  <span className="text-emerald-500 font-bold">{i + 1}.</span>
+                                  {p}
+                                </li>
+                              ))}
+                            </ul>
+                          </div>
+                        )}
+
+                        {result.authorMetadata && (
+                          <div className="mt-2 p-4 bg-emerald-50/30 rounded-xl border border-emerald-100/50">
+                            <p className="text-[10px] font-bold text-emerald-600 uppercase tracking-widest mb-1">Author Normalization (IraLIS/FECYT)</p>
+                            <p className="text-xs text-neutral-600 italic leading-relaxed">
+                              {result.authorMetadata}
+                            </p>
+                          </div>
+                        )}
                       </div>
                       <div className="flex gap-2">
+                        <button 
+                          onClick={downloadWordArticle}
+                          className="flex items-center gap-2 px-4 py-2 bg-emerald-600 text-white rounded-xl text-sm font-semibold hover:bg-emerald-700 transition-all"
+                          title="Download Word Version"
+                        >
+                          <FileText size={18} />
+                          Download Word (.docx)
+                        </button>
                         <button 
                           onClick={() => downloadFullArticle('en')}
                           className="p-3 bg-neutral-100 hover:bg-neutral-200 rounded-xl transition-colors text-neutral-600"
@@ -560,7 +940,7 @@ ${result.coverLetter}
 
                     {/* Tabs */}
                     <div className="flex flex-wrap gap-2 border-b border-neutral-100 pb-4">
-                      {Object.keys(result).filter(k => !['title', 'diagnosis', 'checklist', 'keywords'].includes(k)).map((key) => (
+                      {['abstract', 'atAGlance', 'introduction', 'methods', 'results', 'discussion', 'conclusions', 'acknowledgments', 'creditStatement', 'references', 'tables', 'coverLetter'].filter(k => result[k as keyof TransformationResult]).map((key) => (
                         <button
                           key={key}
                           onClick={() => setActiveTab(key as any)}
@@ -569,7 +949,9 @@ ${result.coverLetter}
                             activeTab === key ? "bg-emerald-600 text-white" : "text-neutral-500 hover:bg-neutral-100"
                           )}
                         >
-                          {key}
+                          {key === 'atAGlance' ? 'At a Glance' : 
+                           key === 'creditStatement' ? 'CRediT' : 
+                           key}
                         </button>
                       ))}
                       <button
@@ -584,8 +966,26 @@ ${result.coverLetter}
                       </button>
                     </div>
 
+                    {/* Word Count Display */}
+                    {activeTab !== 'checklist' && activeTab !== 'tables' && typeof result[activeTab] === 'string' && (
+                      <div className="flex items-center justify-between py-2 border-b border-neutral-100 mb-6">
+                        <span className="text-[10px] font-bold text-neutral-400 uppercase tracking-widest">
+                          Section Word Count
+                        </span>
+                        <span className="text-xs font-mono text-neutral-600 bg-neutral-100 px-2 py-0.5 rounded">
+                          {(result[activeTab] as string).split(/\s+/).filter(Boolean).length} words
+                        </span>
+                      </div>
+                    )}
+
                     {/* Content Area */}
                     <div className="min-h-[400px] prose prose-neutral max-w-none">
+                      {activeTab === 'results' && (
+                        <div className="mb-6 p-4 bg-blue-50 border border-blue-100 rounded-xl text-blue-800 text-xs">
+                          <p className="font-bold mb-1">💡 Tip for Tables & Figures:</p>
+                          The AI has identified where your TFG data should be visualized. Look for placeholders like [TABLE X]. You can ask the AI to "Convert [TABLE X] into a Markdown table" using the refinement tool below.
+                        </div>
+                      )}
                       {activeTab === 'checklist' ? (
                         <div className="space-y-4">
                           {result.checklist.map((item, i) => (
@@ -596,6 +996,71 @@ ${result.coverLetter}
                               <span className="text-sm font-medium text-neutral-700">{item}</span>
                             </div>
                           ))}
+                        </div>
+                      ) : activeTab === 'atAGlance' ? (
+                        <div className="bg-emerald-50/50 p-6 rounded-2xl border border-emerald-100 space-y-4">
+                          <h3 className="text-emerald-800 font-bold text-sm uppercase tracking-wider mb-4">Manuscript at a Glance</h3>
+                          <div className="whitespace-pre-wrap text-neutral-700 leading-relaxed font-serif text-lg">
+                            {result.atAGlance}
+                          </div>
+                        </div>
+                      ) : activeTab === 'tables' ? (
+                        <div className="space-y-8">
+                          <div className="p-6 bg-emerald-50 border border-emerald-100 rounded-2xl">
+                            <h3 className="text-emerald-800 font-bold flex items-center gap-2 mb-2">
+                              <BarChart3 size={18} />
+                              Visual Elements Management System
+                            </h3>
+                            <p className="text-sm text-emerald-700 leading-relaxed">
+                              As your scientific mentor, I have identified the following visual elements required for your high-impact manuscript. Since I cannot extract images directly from PDFs, please follow this hybrid workflow:
+                            </p>
+                            <ol className="mt-4 space-y-2 text-xs text-emerald-800 list-decimal list-inside">
+                              <li><strong>Identify:</strong> Review the inventory below for required tables and figures.</li>
+                              <li><strong>Extract:</strong> Locate the corresponding data or images in your original TFG.</li>
+                              <li><strong>Format:</strong> For tables, copy the raw data and use the refinement tool to ask me for specific formatting.</li>
+                              <li><strong>Insert:</strong> Place high-resolution images (300 dpi) directly into your final Word document.</li>
+                            </ol>
+                          </div>
+
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            {result.visualInventory.map((item, i) => (
+                              <div key={i} className="p-4 bg-white border border-neutral-200 rounded-xl shadow-sm hover:border-emerald-200 transition-colors">
+                                <div className="flex items-center justify-between mb-2">
+                                  <span className={cn(
+                                    "px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider",
+                                    item.type === 'table' ? "bg-blue-100 text-blue-700" : "bg-purple-100 text-purple-700"
+                                  )}>
+                                    {item.type}
+                                  </span>
+                                  <span className="text-[10px] font-mono text-neutral-400">{item.id}</span>
+                                </div>
+                                <h4 className="font-bold text-sm text-neutral-800 mb-1">{item.title}</h4>
+                                <p className="text-xs text-neutral-500 mb-3 leading-relaxed">{item.description}</p>
+                                <div className="space-y-1 border-t border-neutral-50 pt-2">
+                                  <div className="flex items-center gap-2 text-[10px]">
+                                    <span className="text-neutral-400 font-medium">Location:</span>
+                                    <span className="text-neutral-600">{item.recommendedLocation}</span>
+                                  </div>
+                                  <div className="flex items-center gap-2 text-[10px]">
+                                    <span className="text-neutral-400 font-medium">Format:</span>
+                                    <span className="text-neutral-600">{item.formatRequired}</span>
+                                  </div>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+
+                          {result.tables && (
+                            <div className="space-y-4">
+                              <div className="flex items-center gap-2 text-xs font-bold text-neutral-400 uppercase tracking-widest">
+                                <FileText size={14} />
+                                Formatted Table Data
+                              </div>
+                              <div className="whitespace-pre-wrap text-neutral-700 leading-relaxed font-mono text-sm bg-neutral-50 p-6 rounded-2xl border border-neutral-200 overflow-x-auto">
+                                {result.tables}
+                              </div>
+                            </div>
+                          )}
                         </div>
                       ) : (
                         <div className="whitespace-pre-wrap text-neutral-700 leading-relaxed font-serif text-lg">
