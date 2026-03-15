@@ -392,20 +392,6 @@ ${result.coverLetter}
       // Split by new lines first
       let rawLines = cleanText.split('\n').filter(line => line.trim());
       
-      // If it's not references, we might need to split by subsection headers like "STUDY POPULATION:"
-      if (!isReference && !isTableList) {
-        const processedLines: string[] = [];
-        rawLines.forEach(line => {
-          // Fix vertical text bug: Split by subsection headers only if preceded by whitespace
-          // This avoids splitting inside a word at the start of a line
-          const parts = line.split(/\s+(?=[A-Z]{3,}(?:\s+[A-Z]{3,})*:)/);
-          parts.forEach(p => {
-            if (p.trim()) processedLines.push(p.trim());
-          });
-        });
-        rawLines = processedLines;
-      }
-
       // Special handling for references
       if (isReference) {
         const processedRefs: string[] = [];
@@ -428,6 +414,7 @@ ${result.coverLetter}
         }
 
         // Check for subsection header at the start (e.g., "METHODS:", "STUDY POPULATION:")
+        // This is safe because it's anchored to the start of the line
         const headerMatch = processedLine.match(/^([A-Z]{3,}(?:\s+[A-Z]{3,})*:)\s*(.*)/);
         
         const children: TextRun[] = [];
