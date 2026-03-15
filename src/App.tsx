@@ -20,10 +20,11 @@ import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
 import { analyzeTFG, generateArticle, refineArticle, type TransformationResult, type JournalRules } from "./lib/gemini";
 import * as pdfjs from "pdfjs-dist";
+import pdfWorker from "pdfjs-dist/build/pdf.worker.mjs?url";
 import mammoth from "mammoth";
 
-// Set up PDF.js worker
-pdfjs.GlobalWorkerOptions.workerSrc = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjs.version}/pdf.worker.min.mjs`;
+// Set up PDF.js worker using local worker bundled by Vite
+pdfjs.GlobalWorkerOptions.workerSrc = pdfWorker;
 
 function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -44,6 +45,7 @@ export default function App() {
   const [result, setResult] = useState<TransformationResult | null>(null);
   const [refinementInstructions, setRefinementInstructions] = useState("");
   const [activeTab, setActiveTab] = useState<keyof TransformationResult>("abstract");
+  const [showManualInput, setShowManualInput] = useState(false);
 
   const handleReset = () => {
     setTfgText("");
@@ -370,34 +372,60 @@ ${result.coverLetter}
           {/* Left Column: Inputs */}
           <div className="lg:col-span-4 space-y-8">
             <section className="space-y-4">
-              <div className="flex items-center gap-2 text-sm font-medium text-neutral-500 uppercase tracking-wider">
-                <FileText size={16} />
-                Step 1: Upload TFG
-              </div>
-              <div 
-                {...getTFGProps()} 
-                className={cn(
-                  "border-2 border-dashed rounded-2xl p-8 transition-all cursor-pointer flex flex-col items-center justify-center gap-4 text-center",
-                  isTFGActive ? "border-emerald-500 bg-emerald-50/50" : "border-neutral-200 hover:border-neutral-300 bg-white",
-                  tfgText && "border-emerald-500/30 bg-emerald-50/20"
-                )}
-              >
-                <input {...getTFGInputProps()} />
-                <div className={cn("w-12 h-12 rounded-full flex items-center justify-center", tfgText ? "bg-emerald-100 text-emerald-600" : "bg-neutral-100 text-neutral-400")}>
-                  {isParsing ? <Loader2 className="animate-spin" size={24} /> : (tfgText ? <CheckCircle2 size={24} /> : <Upload size={24} />)}
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2 text-sm font-medium text-neutral-500 uppercase tracking-wider">
+                  <FileText size={16} />
+                  Step 1: Upload TFG
                 </div>
-                <div>
-                  <p className="font-medium">
-                    {isParsing ? "Reading file..." : (tfgText ? "TFG Loaded Successfully" : "Drop your TFG here")}
+                <button 
+                  onClick={() => setShowManualInput(!showManualInput)}
+                  className="text-xs text-emerald-600 hover:underline font-medium"
+                >
+                  {showManualInput ? "Use File Upload" : "Paste Text Manually"}
+                </button>
+              </div>
+
+              {showManualInput ? (
+                <div className="space-y-2">
+                  <textarea
+                    placeholder="Paste your TFG text here..."
+                    className="w-full h-48 bg-white border border-neutral-200 rounded-2xl p-4 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all resize-none text-sm"
+                    value={tfgText}
+                    onChange={(e) => {
+                      setTfgText(e.target.value);
+                      if (e.target.value) setTfgFileName("Manual Input");
+                    }}
+                  />
+                  <p className="text-[10px] text-neutral-400 italic">
+                    Tip: If the PDF reader fails, copy and paste the text from your document here.
                   </p>
-                  <p className="text-xs text-neutral-400 mt-1">PDF, DOCX, or TXT</p>
-                  {tfgFileName && (
-                    <p className="text-xs font-mono text-emerald-600 mt-2 bg-emerald-50 px-2 py-1 rounded inline-block">
-                      {tfgFileName}
-                    </p>
-                  )}
                 </div>
-              </div>
+              ) : (
+                <div 
+                  {...getTFGProps()} 
+                  className={cn(
+                    "border-2 border-dashed rounded-2xl p-8 transition-all cursor-pointer flex flex-col items-center justify-center gap-4 text-center",
+                    isTFGActive ? "border-emerald-500 bg-emerald-50/50" : "border-neutral-200 hover:border-neutral-300 bg-white",
+                    tfgText && !showManualInput && "border-emerald-500/30 bg-emerald-50/20"
+                  )}
+                >
+                  <input {...getTFGInputProps()} />
+                  <div className={cn("w-12 h-12 rounded-full flex items-center justify-center", tfgText && !showManualInput ? "bg-emerald-100 text-emerald-600" : "bg-neutral-100 text-neutral-400")}>
+                    {isParsing ? <Loader2 className="animate-spin" size={24} /> : (tfgText && !showManualInput ? <CheckCircle2 size={24} /> : <Upload size={24} />)}
+                  </div>
+                  <div>
+                    <p className="font-medium">
+                      {isParsing ? "Reading file..." : (tfgText && !showManualInput ? "TFG Loaded Successfully" : "Drop your TFG here")}
+                    </p>
+                    <p className="text-xs text-neutral-400 mt-1">PDF, DOCX, or TXT</p>
+                    {tfgFileName && !showManualInput && (
+                      <p className="text-xs font-mono text-emerald-600 mt-2 bg-emerald-50 px-2 py-1 rounded inline-block">
+                        {tfgFileName}
+                      </p>
+                    )}
+                  </div>
+                </div>
+              )}
             </section>
 
             <section className="space-y-4">
