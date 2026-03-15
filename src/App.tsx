@@ -56,7 +56,15 @@ export default function App() {
   const onDropTFG = useCallback(async (acceptedFiles: File[]) => {
     const file = acceptedFiles[0];
     if (!file) return;
+    
+    // Client-side size check (10MB)
+    if (file.size > 10 * 1024 * 1024) {
+      setError("File is too large. Maximum size is 10MB.");
+      return;
+    }
+
     setTfgFileName(file.name);
+    setTfgText(""); // Clear previous text
     setIsParsing(true);
     setError(null);
     
@@ -68,15 +76,22 @@ export default function App() {
         method: "POST",
         body: formData,
       });
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || "Failed to parse TFG file");
-      }
+      
       const data = await response.json();
+      
+      if (!response.ok) {
+        throw new Error(data.error || `Server error (${response.status})`);
+      }
+      
+      if (!data.text || data.text.trim().length === 0) {
+        throw new Error("No text could be extracted from this file. It might be empty or contain only images.");
+      }
+
       setTfgText(data.text);
     } catch (err: any) {
       console.error("Error uploading TFG:", err);
       setError(`Error reading TFG: ${err.message}`);
+      setTfgFileName(""); // Reset filename on error to allow retry
     } finally {
       setIsParsing(false);
     }
@@ -85,7 +100,14 @@ export default function App() {
   const onDropRules = useCallback(async (acceptedFiles: File[]) => {
     const file = acceptedFiles[0];
     if (!file) return;
+
+    if (file.size > 5 * 1024 * 1024) {
+      setError("Rules file is too large. Maximum size is 5MB.");
+      return;
+    }
+
     setRulesFileName(file.name);
+    setJournalRulesText(""); // Clear previous text
     setIsParsing(true);
     setError(null);
     
@@ -97,15 +119,22 @@ export default function App() {
         method: "POST",
         body: formData,
       });
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || "Failed to parse rules file");
-      }
+      
       const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || `Server error (${response.status})`);
+      }
+
+      if (!data.text || data.text.trim().length === 0) {
+        throw new Error("No text could be extracted from the rules file.");
+      }
+
       setJournalRulesText(data.text);
     } catch (err: any) {
       console.error("Error uploading Rules:", err);
       setError(`Error reading Rules: ${err.message}`);
+      setRulesFileName("");
     } finally {
       setIsParsing(false);
     }
