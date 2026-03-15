@@ -36,7 +36,7 @@ def parse_file(uploaded_file):
         return uploaded_file.read().decode("utf-8")
 
 def generate_article(tfg_text, journal_name, journal_rules):
-    model = genai.GenerativeModel("gemini-3.1-pro-preview")
+    model = genai.GenerativeModel("gemini-3-flash-preview")
     
     prompt = f"""You are an expert scientific editor. Transform the following TFG into a high-impact journal article for the journal "{journal_name}".
     
