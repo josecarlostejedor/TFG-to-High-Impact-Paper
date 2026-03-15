@@ -7,7 +7,8 @@ import mammoth from "mammoth";
 import pdf from "pdf-parse/lib/pdf-parse.js";
 import fs from "fs";
 
-const upload = multer({ dest: "uploads/" });
+const storage = multer.memoryStorage();
+const upload = multer({ storage: storage });
 
 async function startServer() {
   const app = express();
@@ -21,24 +22,20 @@ async function startServer() {
       return res.status(400).json({ error: "No file uploaded" });
     }
 
-    const filePath = req.file.path;
+    const buffer = req.file.buffer;
     const mimeType = req.file.mimetype;
 
     try {
       let text = "";
       if (mimeType === "application/pdf") {
-        const dataBuffer = fs.readFileSync(filePath);
-        const data = await pdf(dataBuffer);
+        const data = await pdf(buffer);
         text = data.text;
       } else if (mimeType === "application/vnd.openxmlformats-officedocument.wordprocessingml.document") {
-        const result = await mammoth.extractRawText({ path: filePath });
+        const result = await mammoth.extractRawText({ buffer: buffer });
         text = result.value;
       } else {
-        text = fs.readFileSync(filePath, "utf-8");
+        text = buffer.toString("utf-8");
       }
-
-      // Clean up
-      fs.unlinkSync(filePath);
 
       res.json({ text });
     } catch (error) {
