@@ -5,14 +5,38 @@ import multer from "multer";
 import mammoth from "mammoth";
 import fs from "fs";
 
-import { createRequire } from "module";
+import * as pdfjs from "pdfjs-dist/legacy/build/pdf.mjs";
 
-const require = createRequire(import.meta.url);
-let pdf: any;
-try {
-  pdf = require("pdf-parse");
-} catch (e) {
-  console.error("Failed to load pdf-parse:", e);
+// Initialize pdfjs worker
+// In Node.js environment with the legacy build, we can often skip the worker or use the bundled one
+// For text extraction, this is the most reliable way in Node:
+
+async function extractTextFromPDF(buffer: Buffer): Promise<string> {
+  try {
+    const data = new Uint8Array(buffer);
+    const loadingTask = pdfjs.getDocument({
+      data,
+      useSystemFonts: true,
+      disableFontFace: true,
+      isEvalSupported: false, // Security/stability in some environments
+    });
+    const pdf = await loadingTask.promise;
+    let fullText = "";
+    
+    for (let i = 1; i <= pdf.numPages; i++) {
+      const page = await pdf.getPage(i);
+      const textContent = await page.getTextContent();
+      const pageText = textContent.items
+        .map((item: any) => item.str)
+        .join(" ");
+      fullText += pageText + "\n";
+    }
+    
+    return fullText;
+  } catch (error) {
+    console.error("pdfjs-dist error:", error);
+    throw error;
+  }
 }
 
 // Increase limit to 4MB to be safe with Vercel's 4.5MB payload limit
@@ -29,7 +53,7 @@ async function startServer() {
 
   // Health check endpoint
   app.get("/api/health", (req, res) => {
-    res.json({ status: "ok", pdfEngine: !!pdf });
+    res.json({ status: "ok", time: new Date().toISOString() });
   });
 
   // API to parse files
@@ -57,14 +81,8 @@ async function startServer() {
 
       let text = "";
       if (mimeType === "application/pdf") {
-        const parsePdf = typeof pdf === 'function' ? pdf : pdf?.default;
-        if (!parsePdf) {
-          throw new Error("PDF parsing engine is not initialized.");
-        }
-        
         try {
-          const data = await parsePdf(buffer);
-          text = data.text;
+          text = await extractTextFromPDF(buffer);
           if (!text || text.trim().length === 0) {
             throw new Error("PDF seems to be empty or contains only images.");
           }
