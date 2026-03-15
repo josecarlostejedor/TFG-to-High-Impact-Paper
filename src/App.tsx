@@ -68,12 +68,15 @@ export default function App() {
         method: "POST",
         body: formData,
       });
-      if (!response.ok) throw new Error("Failed to parse TFG file");
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || "Failed to parse TFG file");
+      }
       const data = await response.json();
       setTfgText(data.text);
     } catch (err: any) {
       console.error("Error uploading TFG:", err);
-      setError("Error reading TFG file. Please try a different format (PDF, DOCX, TXT).");
+      setError(`Error reading TFG: ${err.message}`);
     } finally {
       setIsParsing(false);
     }
@@ -94,12 +97,15 @@ export default function App() {
         method: "POST",
         body: formData,
       });
-      if (!response.ok) throw new Error("Failed to parse rules file");
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || "Failed to parse rules file");
+      }
       const data = await response.json();
       setJournalRulesText(data.text);
     } catch (err: any) {
       console.error("Error uploading Rules:", err);
-      setError("Error reading Journal Rules. Please try a different format.");
+      setError(`Error reading Rules: ${err.message}`);
     } finally {
       setIsParsing(false);
     }
