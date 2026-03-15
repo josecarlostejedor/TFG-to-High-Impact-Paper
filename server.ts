@@ -15,10 +15,10 @@ try {
   console.error("Failed to load pdf-parse:", e);
 }
 
-// Increase limit to 10MB for TFG documents
+// Increase limit to 4MB to be safe with Vercel's 4.5MB payload limit
 const upload = multer({ 
   storage: multer.memoryStorage(),
-  limits: { fileSize: 10 * 1024 * 1024 } 
+  limits: { fileSize: 4 * 1024 * 1024 } 
 });
 
 async function startServer() {
@@ -27,13 +27,18 @@ async function startServer() {
 
   app.use(express.json());
 
+  // Health check endpoint
+  app.get("/api/health", (req, res) => {
+    res.json({ status: "ok", pdfEngine: !!pdf });
+  });
+
   // API to parse files
   app.post("/api/parse-file", (req, res, next) => {
     upload.single("file")(req, res, (err) => {
       if (err) {
         console.error("Multer error:", err);
         return res.status(400).json({ 
-          error: err.code === 'LIMIT_FILE_SIZE' ? "File too large (max 10MB)" : err.message 
+          error: err.code === 'LIMIT_FILE_SIZE' ? "File too large (max 4MB for Vercel compatibility)" : err.message 
         });
       }
       next();
