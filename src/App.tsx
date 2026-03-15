@@ -19,6 +19,11 @@ import { motion, AnimatePresence } from "motion/react";
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
 import { analyzeTFG, generateArticle, refineArticle, type TransformationResult, type JournalRules } from "./lib/gemini";
+import * as pdfjs from "pdfjs-dist";
+import mammoth from "mammoth";
+
+// Set up PDF.js worker
+pdfjs.GlobalWorkerOptions.workerSrc = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjs.version}/pdf.worker.min.mjs`;
 
 function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -57,56 +62,47 @@ export default function App() {
     const file = acceptedFiles[0];
     if (!file) return;
     
-    // Client-side size check (4MB to be safe with Vercel/Serverless limits)
-    if (file.size > 4 * 1024 * 1024) {
-      setError("File is too large. Maximum size for serverless processing is 4MB.");
-      return;
-    }
-
     setTfgFileName(file.name);
-    setTfgText(""); // Clear previous text
+    setTfgText(""); 
     setIsParsing(true);
     setError(null);
     
-    const formData = new FormData();
-    formData.append("file", file);
-    
     try {
-      const response = await fetch("/api/parse-file", {
-        method: "POST",
-        body: formData,
-      });
-      
-      const text = await response.text();
-      let data;
-      
-      const contentType = response.headers.get("content-type");
-      if (contentType && contentType.includes("application/json")) {
-        try {
-          data = JSON.parse(text);
-        } catch (e) {
-          console.error("Failed to parse JSON response:", text);
-          throw new Error(`Server returned invalid JSON. Check console for details.`);
+      let extractedText = "";
+
+      if (file.type === "application/pdf") {
+        const arrayBuffer = await file.arrayBuffer();
+        const loadingTask = pdfjs.getDocument({ data: arrayBuffer });
+        const pdf = await loadingTask.promise;
+        let fullText = "";
+        
+        for (let i = 1; i <= pdf.numPages; i++) {
+          const page = await pdf.getPage(i);
+          const textContent = await page.getTextContent();
+          const pageText = textContent.items
+            .map((item: any) => item.str)
+            .join(" ");
+          fullText += pageText + "\n";
         }
-      } else {
-        console.error("Server returned non-JSON response:", text);
-        // If it's a Vercel error, it might be HTML. Let's try to extract the text.
-        const plainText = text.replace(/<[^>]*>/g, '').substring(0, 200);
-        throw new Error(plainText || `Server error (${response.status})`);
+        extractedText = fullText;
+      } 
+      else if (file.type === "application/vnd.openxmlformats-officedocument.wordprocessingml.document") {
+        const arrayBuffer = await file.arrayBuffer();
+        const result = await mammoth.extractRawText({ arrayBuffer });
+        extractedText = result.value;
+      } 
+      else {
+        extractedText = await file.text();
       }
       
-      if (!response.ok) {
-        throw new Error(data.error || `Server error (${response.status})`);
-      }
-      
-      if (!data.text || data.text.trim().length === 0) {
+      if (!extractedText || extractedText.trim().length === 0) {
         throw new Error("No text could be extracted from this file. It might be empty or contain only images.");
       }
 
-      setTfgText(data.text);
+      setTfgText(extractedText);
     } catch (err: any) {
-      console.error("Error uploading TFG:", err);
-      setError(`Error reading TFG: ${err.message}`);
+      console.error("Error reading file:", err);
+      setError(`Error reading file: ${err.message}`);
       setTfgFileName(""); 
     } finally {
       setIsParsing(false);
@@ -117,51 +113,47 @@ export default function App() {
     const file = acceptedFiles[0];
     if (!file) return;
 
-    if (file.size > 4 * 1024 * 1024) {
-      setError("Rules file is too large. Maximum size is 4MB.");
-      return;
-    }
-
     setRulesFileName(file.name);
-    setJournalRulesText(""); // Clear previous text
+    setJournalRulesText(""); 
     setIsParsing(true);
     setError(null);
     
-    const formData = new FormData();
-    formData.append("file", file);
-    
     try {
-      const response = await fetch("/api/parse-file", {
-        method: "POST",
-        body: formData,
-      });
-      
-      const text = await response.text();
-      let data;
-      
-      const contentType = response.headers.get("content-type");
-      if (contentType && contentType.includes("application/json")) {
-        try {
-          data = JSON.parse(text);
-        } catch (e) {
-          throw new Error(`Server returned invalid JSON: ${text.substring(0, 100)}...`);
+      let extractedText = "";
+
+      if (file.type === "application/pdf") {
+        const arrayBuffer = await file.arrayBuffer();
+        const loadingTask = pdfjs.getDocument({ data: arrayBuffer });
+        const pdf = await loadingTask.promise;
+        let fullText = "";
+        
+        for (let i = 1; i <= pdf.numPages; i++) {
+          const page = await pdf.getPage(i);
+          const textContent = await page.getTextContent();
+          const pageText = textContent.items
+            .map((item: any) => item.str)
+            .join(" ");
+          fullText += pageText + "\n";
         }
-      } else {
-        throw new Error(text || `Server error (${response.status})`);
+        extractedText = fullText;
+      } 
+      else if (file.type === "application/vnd.openxmlformats-officedocument.wordprocessingml.document") {
+        const arrayBuffer = await file.arrayBuffer();
+        const result = await mammoth.extractRawText({ arrayBuffer });
+        extractedText = result.value;
+      } 
+      else {
+        extractedText = await file.text();
       }
 
-      if (!response.ok) {
-        throw new Error(data.error || `Server error (${response.status})`);
-      }
-
-      if (!data.text || data.text.trim().length === 0) {
+      if (!extractedText || extractedText.trim().length === 0) {
         throw new Error("No text could be extracted from the rules file.");
       }
 
-      setJournalRulesText(data.text);
+      setJournalRulesText(extractedText);
     } catch (err: any) {
-      console.error("Error uploading Rules:", err);
-      setError(`Error reading Rules: ${err.message}`);
+      console.error("Error reading rules:", err);
+      setError(`Error reading rules: ${err.message}`);
       setRulesFileName("");
     } finally {
       setIsParsing(false);
