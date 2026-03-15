@@ -5,22 +5,14 @@ import multer from "multer";
 import mammoth from "mammoth";
 import fs from "fs";
 
-// Robust import for pdf-parse
+import { createRequire } from "module";
+
+const require = createRequire(import.meta.url);
 let pdf: any;
 try {
-  // Try ESM-friendly path first
-  // @ts-ignore
-  const pdfModule = await import("pdf-parse/lib/pdf-parse.js");
-  pdf = pdfModule.default || pdfModule;
+  pdf = require("pdf-parse");
 } catch (e) {
-  console.warn("Failed to import pdf-parse via ESM path, trying require fallback");
-  try {
-    const { createRequire } = await import("module");
-    const require = createRequire(import.meta.url);
-    pdf = require("pdf-parse");
-  } catch (e2) {
-    console.error("All pdf-parse import attempts failed", e2);
-  }
+  console.error("Failed to load pdf-parse:", e);
 }
 
 // Increase limit to 10MB for TFG documents
@@ -36,7 +28,17 @@ async function startServer() {
   app.use(express.json());
 
   // API to parse files
-  app.post("/api/parse-file", upload.single("file"), async (req, res) => {
+  app.post("/api/parse-file", (req, res, next) => {
+    upload.single("file")(req, res, (err) => {
+      if (err) {
+        console.error("Multer error:", err);
+        return res.status(400).json({ 
+          error: err.code === 'LIMIT_FILE_SIZE' ? "File too large (max 10MB)" : err.message 
+        });
+      }
+      next();
+    });
+  }, async (req, res) => {
     try {
       if (!req.file) {
         return res.status(400).json({ error: "No file uploaded" });
@@ -50,14 +52,16 @@ async function startServer() {
 
       let text = "";
       if (mimeType === "application/pdf") {
-        if (!pdf) {
-          throw new Error("PDF parsing engine is not available on the server.");
+        const parsePdf = typeof pdf === 'function' ? pdf : pdf?.default;
+        if (!parsePdf) {
+          throw new Error("PDF parsing engine is not initialized.");
         }
+        
         try {
-          const data = await pdf(buffer);
+          const data = await parsePdf(buffer);
           text = data.text;
           if (!text || text.trim().length === 0) {
-            throw new Error("PDF seems to be empty or contains only images (OCR not supported yet).");
+            throw new Error("PDF seems to be empty or contains only images.");
           }
         } catch (pdfError: any) {
           console.error("PDF Parse Error:", pdfError);
@@ -73,7 +77,6 @@ async function startServer() {
       return res.json({ text });
     } catch (error: any) {
       console.error("Global Error parsing file:", error);
-      // Ensure we ALWAYS return JSON
       return res.status(500).json({ error: `Server error parsing file: ${error.message}` });
     }
   });
@@ -92,6 +95,17 @@ async function startServer() {
       res.sendFile(path.join(distPath, "index.html"));
     });
   }
+
+  // Final error handler to catch anything else and return JSON
+  app.use((err: any, req: express.Request, res: express.Response, next: express.NextFunction) => {
+    console.error("Unhandled Express Error:", err);
+    if (res.headersSent) {
+      return next(err);
+    }
+    res.status(err.status || 500).json({ 
+      error: "A critical server error occurred. Please try again with a smaller or different file." 
+    });
+  });
 
   app.listen(PORT, "0.0.0.0", () => {
     console.log(`Server running on http://localhost:${PORT}`);
