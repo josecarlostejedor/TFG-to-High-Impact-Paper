@@ -392,6 +392,28 @@ ${result.coverLetter}
       // Split by new lines first
       let rawLines = cleanText.split('\n').filter(line => line.trim());
       
+      // Join lines that look like they belong to the same header (e.g., "METHODS\nSTUDY\nDESIGN:")
+      if (!isReference && !isTableList) {
+        const joinedLines: string[] = [];
+        for (let i = 0; i < rawLines.length; i++) {
+          let current = rawLines[i].trim();
+          
+          // If current line is all uppercase and short (likely a header part)
+          // and doesn't end with a colon, try to peek at the next line
+          while (
+            i + 1 < rawLines.length && 
+            /^[A-Z\s]{2,20}$/.test(current) && 
+            !current.endsWith(':') &&
+            /^[A-Z\s]{2,20}:?$/.test(rawLines[i+1].trim())
+          ) {
+            current += " " + rawLines[i+1].trim();
+            i++;
+          }
+          joinedLines.push(current);
+        }
+        rawLines = joinedLines;
+      }
+
       // Special handling for references
       if (isReference) {
         const processedRefs: string[] = [];
