@@ -31,6 +31,7 @@ export default function App() {
   const [tfgFileName, setTfgFileName] = useState<string>("");
   const [rulesFileName, setRulesFileName] = useState<string>("");
   const [isGenerating, setIsGenerating] = useState(false);
+  const [isParsing, setIsParsing] = useState(false);
   const [progress, setProgress] = useState(0);
   const [elapsedTime, setElapsedTime] = useState(0);
   const [error, setError] = useState<string | null>(null);
@@ -56,6 +57,8 @@ export default function App() {
     const file = acceptedFiles[0];
     if (!file) return;
     setTfgFileName(file.name);
+    setIsParsing(true);
+    setError(null);
     
     const formData = new FormData();
     formData.append("file", file);
@@ -65,10 +68,14 @@ export default function App() {
         method: "POST",
         body: formData,
       });
+      if (!response.ok) throw new Error("Failed to parse TFG file");
       const data = await response.json();
       setTfgText(data.text);
-    } catch (error) {
-      console.error("Error uploading TFG:", error);
+    } catch (err: any) {
+      console.error("Error uploading TFG:", err);
+      setError("Error reading TFG file. Please try a different format (PDF, DOCX, TXT).");
+    } finally {
+      setIsParsing(false);
     }
   }, []);
 
@@ -76,6 +83,8 @@ export default function App() {
     const file = acceptedFiles[0];
     if (!file) return;
     setRulesFileName(file.name);
+    setIsParsing(true);
+    setError(null);
     
     const formData = new FormData();
     formData.append("file", file);
@@ -85,10 +94,14 @@ export default function App() {
         method: "POST",
         body: formData,
       });
+      if (!response.ok) throw new Error("Failed to parse rules file");
       const data = await response.json();
       setJournalRulesText(data.text);
-    } catch (error) {
-      console.error("Error uploading Rules:", error);
+    } catch (err: any) {
+      console.error("Error uploading Rules:", err);
+      setError("Error reading Journal Rules. Please try a different format.");
+    } finally {
+      setIsParsing(false);
     }
   }, []);
 
@@ -316,10 +329,12 @@ ${result.coverLetter}
               >
                 <input {...getTFGInputProps()} />
                 <div className={cn("w-12 h-12 rounded-full flex items-center justify-center", tfgText ? "bg-emerald-100 text-emerald-600" : "bg-neutral-100 text-neutral-400")}>
-                  {tfgText ? <CheckCircle2 size={24} /> : <Upload size={24} />}
+                  {isParsing ? <Loader2 className="animate-spin" size={24} /> : (tfgText ? <CheckCircle2 size={24} /> : <Upload size={24} />)}
                 </div>
                 <div>
-                  <p className="font-medium">{tfgText ? "TFG Loaded Successfully" : "Drop your TFG here"}</p>
+                  <p className="font-medium">
+                    {isParsing ? "Reading file..." : (tfgText ? "TFG Loaded Successfully" : "Drop your TFG here")}
+                  </p>
                   <p className="text-xs text-neutral-400 mt-1">PDF, DOCX, or TXT</p>
                   {tfgFileName && (
                     <p className="text-xs font-mono text-emerald-600 mt-2 bg-emerald-50 px-2 py-1 rounded inline-block">
@@ -353,10 +368,12 @@ ${result.coverLetter}
                 >
                   <input {...getRulesInputProps()} />
                   <div className={cn("w-12 h-12 rounded-full flex items-center justify-center", journalRulesText ? "bg-emerald-100 text-emerald-600" : "bg-neutral-100 text-neutral-400")}>
-                    {journalRulesText ? <CheckCircle2 size={24} /> : <Upload size={24} />}
+                    {isParsing ? <Loader2 className="animate-spin" size={24} /> : (journalRulesText ? <CheckCircle2 size={24} /> : <Upload size={24} />)}
                   </div>
                   <div>
-                    <p className="font-medium">{journalRulesText ? "Rules Loaded Successfully" : "Upload Guide for Authors"}</p>
+                    <p className="font-medium">
+                      {isParsing ? "Reading file..." : (journalRulesText ? "Rules Loaded Successfully" : "Upload Guide for Authors")}
+                    </p>
                     <p className="text-xs text-neutral-400 mt-1">PDF or TXT</p>
                     {rulesFileName && (
                       <p className="text-xs font-mono text-emerald-600 mt-2 bg-emerald-50 px-2 py-1 rounded inline-block">
@@ -370,28 +387,16 @@ ${result.coverLetter}
 
             <button 
               onClick={handleGenerate}
-              disabled={isGenerating || !tfgText || !journalName || !journalRulesText}
+              disabled={isGenerating || isParsing || !tfgText || !journalName || !journalRulesText}
               className="w-full bg-emerald-600 hover:bg-emerald-700 disabled:bg-neutral-300 text-white font-semibold py-4 rounded-xl shadow-lg shadow-emerald-600/20 transition-all flex flex-col items-center justify-center gap-2 group relative overflow-hidden"
             >
               <div className="flex items-center gap-2 z-10">
                 {isGenerating ? <Loader2 className="animate-spin" /> : <Zap size={18} className="group-hover:scale-110 transition-transform" />}
-                {isGenerating ? "Generating..." : "Generate High-Impact Draft"}
+                {isGenerating ? "Generating..." : (isParsing ? "Waiting for files..." : "Generate High-Impact Draft")}
               </div>
               
-              {isGenerating && (
-                <div className="w-full px-8 mt-2 z-10">
-                  <div className="w-full bg-emerald-800/30 h-1.5 rounded-full overflow-hidden">
-                    <motion.div 
-                      className="bg-white h-full"
-                      initial={{ width: 0 }}
-                      animate={{ width: `${progress}%` }}
-                    />
-                  </div>
-                  <div className="flex justify-between mt-1 text-[10px] opacity-80">
-                    <span>{Math.round(progress)}% complete</span>
-                    <span>{Math.floor(elapsedTime / 2)}s elapsed</span>
-                  </div>
-                </div>
+              {!tfgText && !isParsing && tfgFileName && (
+                <p className="text-[10px] text-white/80 z-10">Parsing failed. Please re-upload.</p>
               )}
             </button>
 
