@@ -33,6 +33,8 @@ export default function App() {
   const [isGenerating, setIsGenerating] = useState(false);
   const [progress, setProgress] = useState(0);
   const [elapsedTime, setElapsedTime] = useState(0);
+  const [error, setError] = useState<string | null>(null);
+  const [statusMessage, setStatusMessage] = useState("");
   const [result, setResult] = useState<TransformationResult | null>(null);
   const [refinementInstructions, setRefinementInstructions] = useState("");
   const [activeTab, setActiveTab] = useState<keyof TransformationResult>("abstract");
@@ -117,14 +119,29 @@ export default function App() {
     setIsGenerating(true);
     setProgress(0);
     setElapsedTime(0);
+    setError(null);
+    setStatusMessage("Initializing AI Engine...");
     
     const timer = setInterval(() => {
       setElapsedTime(prev => prev + 1);
       setProgress(prev => {
-        if (prev < 30) return prev + 2;
-        if (prev < 60) return prev + 1;
-        if (prev < 90) return prev + 0.5;
-        if (prev < 98) return prev + 0.1;
+        if (prev < 20) {
+          setStatusMessage("Analyzing TFG structure and methodology...");
+          return prev + 1;
+        }
+        if (prev < 45) {
+          setStatusMessage(`Adapting content to ${journalName} guidelines...`);
+          return prev + 0.8;
+        }
+        if (prev < 75) {
+          setStatusMessage("Drafting high-impact manuscript sections...");
+          return prev + 0.5;
+        }
+        if (prev < 95) {
+          setStatusMessage("Performing final scientific rigor check...");
+          return prev + 0.2;
+        }
+        setStatusMessage("Finalizing formatting and checklist...");
         return prev;
       });
     }, 500);
@@ -133,8 +150,10 @@ export default function App() {
       const res = await generateArticle(tfgText, { name: journalName, rulesText: journalRulesText });
       setResult(res);
       setProgress(100);
-    } catch (error) {
-      console.error("Generation failed:", error);
+      setStatusMessage("Manuscript ready!");
+    } catch (err: any) {
+      console.error("Generation failed:", err);
+      setError(err.message || "An unexpected error occurred during generation. Please try again.");
     } finally {
       clearInterval(timer);
       setIsGenerating(false);
@@ -201,6 +220,52 @@ ${result.coverLetter}
 
   return (
     <div className="min-h-screen bg-[#F5F5F5] text-[#1A1A1A] font-sans selection:bg-emerald-100">
+      {/* Loading Overlay */}
+      <AnimatePresence>
+        {isGenerating && (
+          <motion.div 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[100] bg-white/90 backdrop-blur-md flex flex-col items-center justify-center p-6 text-center"
+          >
+            <div className="max-w-md w-full space-y-8">
+              <div className="relative">
+                <div className="w-24 h-24 border-4 border-emerald-100 border-t-emerald-600 rounded-full animate-spin mx-auto" />
+                <div className="absolute inset-0 flex items-center justify-center text-emerald-600">
+                  <Zap size={32} fill="currentColor" className="animate-pulse" />
+                </div>
+              </div>
+              
+              <div className="space-y-2">
+                <h2 className="text-2xl font-bold tracking-tight">Transforming your Research</h2>
+                <p className="text-neutral-500 font-medium animate-pulse">{statusMessage}</p>
+              </div>
+
+              <div className="space-y-4">
+                <div className="w-full bg-neutral-100 h-3 rounded-full overflow-hidden">
+                  <motion.div 
+                    className="bg-emerald-600 h-full"
+                    initial={{ width: 0 }}
+                    animate={{ width: `${progress}%` }}
+                    transition={{ duration: 0.5 }}
+                  />
+                </div>
+                <div className="flex justify-between text-sm font-mono text-neutral-400">
+                  <span>{Math.round(progress)}% Complete</span>
+                  <span>{Math.floor(elapsedTime / 2)}s Elapsed</span>
+                </div>
+              </div>
+
+              <div className="p-4 bg-amber-50 rounded-xl border border-amber-100 text-amber-800 text-xs leading-relaxed">
+                <p className="font-semibold mb-1">Note for Vercel Users:</p>
+                Large documents may take up to 60 seconds to process. Please do not close this tab.
+              </div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       {/* Header */}
       <header className="bg-white border-b border-black/5 sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
@@ -329,6 +394,20 @@ ${result.coverLetter}
                 </div>
               )}
             </button>
+
+            {error && (
+              <motion.div 
+                initial={{ opacity: 0, scale: 0.95 }}
+                animate={{ opacity: 1, scale: 1 }}
+                className="p-4 bg-red-50 border border-red-100 rounded-xl text-red-700 text-sm flex items-start gap-3"
+              >
+                <AlertCircle size={18} className="shrink-0 mt-0.5" />
+                <div>
+                  <p className="font-bold">Generation Error</p>
+                  <p className="opacity-90">{error}</p>
+                </div>
+              </motion.div>
+            )}
 
             {result && (
               <motion.div 
