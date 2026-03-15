@@ -11,7 +11,8 @@ import {
   ChevronRight,
   Loader2,
   Languages,
-  FileCheck
+  FileCheck,
+  RotateCcw
 } from "lucide-react";
 import { useDropzone } from "react-dropzone";
 import { motion, AnimatePresence } from "motion/react";
@@ -27,14 +28,32 @@ export default function App() {
   const [tfgText, setTfgText] = useState<string>("");
   const [journalName, setJournalName] = useState<string>("");
   const [journalRulesText, setJournalRulesText] = useState<string>("");
+  const [tfgFileName, setTfgFileName] = useState<string>("");
+  const [rulesFileName, setRulesFileName] = useState<string>("");
   const [isGenerating, setIsGenerating] = useState(false);
+  const [progress, setProgress] = useState(0);
+  const [elapsedTime, setElapsedTime] = useState(0);
   const [result, setResult] = useState<TransformationResult | null>(null);
   const [refinementInstructions, setRefinementInstructions] = useState("");
   const [activeTab, setActiveTab] = useState<keyof TransformationResult>("abstract");
 
+  const handleReset = () => {
+    setTfgText("");
+    setJournalName("");
+    setJournalRulesText("");
+    setTfgFileName("");
+    setRulesFileName("");
+    setResult(null);
+    setRefinementInstructions("");
+    setProgress(0);
+    setElapsedTime(0);
+    setActiveTab("abstract");
+  };
+
   const onDropTFG = useCallback(async (acceptedFiles: File[]) => {
     const file = acceptedFiles[0];
     if (!file) return;
+    setTfgFileName(file.name);
     
     const formData = new FormData();
     formData.append("file", file);
@@ -54,6 +73,7 @@ export default function App() {
   const onDropRules = useCallback(async (acceptedFiles: File[]) => {
     const file = acceptedFiles[0];
     if (!file) return;
+    setRulesFileName(file.name);
     
     const formData = new FormData();
     formData.append("file", file);
@@ -95,12 +115,28 @@ export default function App() {
   const handleGenerate = async () => {
     if (!tfgText || !journalName || !journalRulesText) return;
     setIsGenerating(true);
+    setProgress(0);
+    setElapsedTime(0);
+    
+    const timer = setInterval(() => {
+      setElapsedTime(prev => prev + 1);
+      setProgress(prev => {
+        if (prev < 30) return prev + 2;
+        if (prev < 60) return prev + 1;
+        if (prev < 90) return prev + 0.5;
+        if (prev < 98) return prev + 0.1;
+        return prev;
+      });
+    }, 500);
+
     try {
       const res = await generateArticle(tfgText, { name: journalName, rulesText: journalRulesText });
       setResult(res);
+      setProgress(100);
     } catch (error) {
       console.error("Generation failed:", error);
     } finally {
+      clearInterval(timer);
       setIsGenerating(false);
     }
   };
@@ -175,6 +211,14 @@ ${result.coverLetter}
             <h1 className="text-lg font-semibold tracking-tight">TFG to High-Impact Paper</h1>
           </div>
           <div className="flex items-center gap-4 text-sm text-neutral-500">
+            <button 
+              onClick={handleReset}
+              className="flex items-center gap-1.5 px-3 py-1.5 hover:bg-neutral-100 rounded-lg transition-colors text-neutral-600 font-medium"
+            >
+              <RotateCcw size={14} />
+              New Project
+            </button>
+            <div className="h-4 w-px bg-neutral-200" />
             <span className="flex items-center gap-1.5">
               <CheckCircle2 size={14} className="text-emerald-500" />
               AI-Powered Rigor
@@ -212,6 +256,11 @@ ${result.coverLetter}
                 <div>
                   <p className="font-medium">{tfgText ? "TFG Loaded Successfully" : "Drop your TFG here"}</p>
                   <p className="text-xs text-neutral-400 mt-1">PDF, DOCX, or TXT</p>
+                  {tfgFileName && (
+                    <p className="text-xs font-mono text-emerald-600 mt-2 bg-emerald-50 px-2 py-1 rounded inline-block">
+                      {tfgFileName}
+                    </p>
+                  )}
                 </div>
               </div>
             </section>
@@ -244,6 +293,11 @@ ${result.coverLetter}
                   <div>
                     <p className="font-medium">{journalRulesText ? "Rules Loaded Successfully" : "Upload Guide for Authors"}</p>
                     <p className="text-xs text-neutral-400 mt-1">PDF or TXT</p>
+                    {rulesFileName && (
+                      <p className="text-xs font-mono text-emerald-600 mt-2 bg-emerald-50 px-2 py-1 rounded inline-block">
+                        {rulesFileName}
+                      </p>
+                    )}
                   </div>
                 </div>
               </div>
@@ -252,10 +306,28 @@ ${result.coverLetter}
             <button 
               onClick={handleGenerate}
               disabled={isGenerating || !tfgText || !journalName || !journalRulesText}
-              className="w-full bg-emerald-600 hover:bg-emerald-700 disabled:bg-neutral-300 text-white font-semibold py-4 rounded-xl shadow-lg shadow-emerald-600/20 transition-all flex items-center justify-center gap-2 group"
+              className="w-full bg-emerald-600 hover:bg-emerald-700 disabled:bg-neutral-300 text-white font-semibold py-4 rounded-xl shadow-lg shadow-emerald-600/20 transition-all flex flex-col items-center justify-center gap-2 group relative overflow-hidden"
             >
-              {isGenerating ? <Loader2 className="animate-spin" /> : <Zap size={18} className="group-hover:scale-110 transition-transform" />}
-              Generate High-Impact Draft
+              <div className="flex items-center gap-2 z-10">
+                {isGenerating ? <Loader2 className="animate-spin" /> : <Zap size={18} className="group-hover:scale-110 transition-transform" />}
+                {isGenerating ? "Generating..." : "Generate High-Impact Draft"}
+              </div>
+              
+              {isGenerating && (
+                <div className="w-full px-8 mt-2 z-10">
+                  <div className="w-full bg-emerald-800/30 h-1.5 rounded-full overflow-hidden">
+                    <motion.div 
+                      className="bg-white h-full"
+                      initial={{ width: 0 }}
+                      animate={{ width: `${progress}%` }}
+                    />
+                  </div>
+                  <div className="flex justify-between mt-1 text-[10px] opacity-80">
+                    <span>{Math.round(progress)}% complete</span>
+                    <span>{Math.floor(elapsedTime / 2)}s elapsed</span>
+                  </div>
+                </div>
+              )}
             </button>
 
             {result && (
