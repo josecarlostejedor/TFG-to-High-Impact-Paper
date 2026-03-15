@@ -386,6 +386,7 @@ ${result.coverLetter}
     };
 
     const createParagraphs = (text: string, isReference = false, isTableList = false) => {
+      if (!text) return [];
       const cleanText = stripHtml(text);
       
       // Split by new lines first
@@ -395,10 +396,9 @@ ${result.coverLetter}
       if (!isReference && !isTableList) {
         const processedLines: string[] = [];
         rawLines.forEach(line => {
-          // Look for "SUBSECTION:" pattern in the middle of a line
-          // But avoid splitting common abbreviations or times if possible
-          // We look for 2+ uppercase words followed by a colon
-          const parts = line.split(/(?=[A-Z]{3,}(?:\s+[A-Z]{3,})*:)/);
+          // Fix vertical text bug: Split by subsection headers only if preceded by whitespace
+          // This avoids splitting inside a word at the start of a line
+          const parts = line.split(/\s+(?=[A-Z]{3,}(?:\s+[A-Z]{3,})*:)/);
           parts.forEach(p => {
             if (p.trim()) processedLines.push(p.trim());
           });
@@ -406,11 +406,10 @@ ${result.coverLetter}
         rawLines = processedLines;
       }
 
-      // Special handling for references that might be clumped together or use different numbering
+      // Special handling for references
       if (isReference) {
         const processedRefs: string[] = [];
         const combinedText = rawLines.join(' ');
-        // Split by "1- ", "2- ", "1. ", "2. " etc.
         const splitRefs = combinedText.split(/(?=\d+[\-.]\s)/);
         splitRefs.forEach(r => {
           if (r.trim()) processedRefs.push(r.trim());
@@ -421,32 +420,51 @@ ${result.coverLetter}
       }
 
       return rawLines.map((line, index) => {
-        let processedLine = line;
+        let processedLine = line.trim();
         if (isTableList) {
-          // Prepend numbering if requested for tables
-          if (!line.trim().match(/^\d+[-.]/)) {
-            processedLine = `${index + 1}- ${line}`;
+          if (!processedLine.match(/^\d+[-.]/)) {
+            processedLine = `${index + 1}- ${processedLine}`;
           }
         }
 
-        // Split line by placeholders like [INSERT TABLE 1] or [INSERT FIGURE 2]
-        // AND also look for "TABLE X" or "FIGURE X" to color them maroon
-        const parts = processedLine.split(/(\[INSERT (?:TABLE|FIGURE) \d+\]|TABLE \d+\.?|FIGURE \d+\.?)/g);
+        // Check for subsection header at the start (e.g., "METHODS:", "STUDY POPULATION:")
+        const headerMatch = processedLine.match(/^([A-Z]{3,}(?:\s+[A-Z]{3,})*:)\s*(.*)/);
         
-        return new Paragraph({
-          children: parts.map(part => {
+        const children: TextRun[] = [];
+        let remainingText = processedLine;
+
+        if (headerMatch) {
+          children.push(new TextRun({
+            text: headerMatch[1] + " ",
+            font: "Times New Roman",
+            size: 24,
+            bold: true,
+          }));
+          remainingText = headerMatch[2];
+        }
+
+        if (remainingText) {
+          // Split remaining text by placeholders or table/figure mentions
+          const parts = remainingText.split(/(\[INSERT (?:TABLE|FIGURE) \d+\]|TABLE \d+\.?|FIGURE \d+\.?)/g);
+          
+          parts.forEach(part => {
+            if (!part) return;
             const isPlaceholder = /^\[INSERT (?:TABLE|FIGURE) \d+\]$/.test(part);
             const isTableFigureText = /^(?:TABLE|FIGURE) \d+\.?$/.test(part);
             const shouldHighlight = isPlaceholder || isTableFigureText;
             
-            return new TextRun({ 
+            children.push(new TextRun({ 
               text: part, 
               font: "Times New Roman", 
               size: 24,
               bold: shouldHighlight,
-              color: shouldHighlight ? "800000" : undefined, // Maroon color
-            });
-          }),
+              color: shouldHighlight ? "800000" : undefined,
+            }));
+          });
+        }
+
+        return new Paragraph({
+          children,
           spacing: { after: (isReference || isTableList) ? 240 : 200 },
           alignment: AlignmentType.JUSTIFIED,
         });
@@ -496,11 +514,30 @@ ${result.coverLetter}
               spacing: { after: 400 },
             }),
             new Paragraph({
+              alignment: AlignmentType.CENTER,
+              children: [
+                new TextRun({
+                  text: result.authorMetadata,
+                  font: "Times New Roman",
+                  size: 20,
+                  italics: true,
+                }),
+              ],
+              spacing: { after: 400 },
+            }),
+            new Paragraph({
               text: "ABSTRACT",
               heading: HeadingLevel.HEADING_1,
               spacing: { before: 400, after: 200 },
             }),
             ...createParagraphs(result.abstract),
+            new Paragraph({
+              children: [
+                new TextRun({ text: "Keywords: ", bold: true, font: "Times New Roman", size: 24 }),
+                new TextRun({ text: result.keywords.join(", "), font: "Times New Roman", size: 24 }),
+              ],
+              spacing: { before: 200, after: 400 },
+            }),
             
             new Paragraph({
               text: "AT A GLANCE",
@@ -566,6 +603,7 @@ ${result.coverLetter}
               text: "REFERENCES",
               heading: HeadingLevel.HEADING_1,
               spacing: { before: 400, after: 200 },
+              pageBreakBefore: true,
             }),
             ...createParagraphs(result.references, true),
 
@@ -574,6 +612,7 @@ ${result.coverLetter}
                 text: "TABLES & FIGURES INVENTORY",
                 heading: HeadingLevel.HEADING_1,
                 spacing: { before: 400, after: 200 },
+                pageBreakBefore: true,
               }),
               ...createParagraphs(result.tables, false, true),
               new Paragraph({
@@ -583,11 +622,11 @@ ${result.coverLetter}
               }),
               ...result.visualInventory.map(item => new Paragraph({
                 children: [
-                  new TextRun({ text: `[ ] ${item.id}: ${item.title}`, bold: true }),
+                  new TextRun({ text: `[ ] ${item.id}: ${item.title}`, bold: true, font: "Times New Roman", size: 24 }),
                   new TextRun({ text: `\nLocation: ${item.recommendedLocation}`, font: "Courier New", size: 18 }),
                   new TextRun({ text: `\nFormat: ${item.formatRequired}`, font: "Courier New", size: 18 }),
                 ],
-                spacing: { after: 100 },
+                spacing: { after: 200 },
               }))
             ] : []),
 
@@ -595,6 +634,7 @@ ${result.coverLetter}
               text: "COVER LETTER",
               heading: HeadingLevel.HEADING_1,
               spacing: { before: 400, after: 200 },
+              pageBreakBefore: true,
             }),
             ...createParagraphs(result.coverLetter),
           ],
