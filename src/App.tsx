@@ -24,7 +24,8 @@ import mammoth from "mammoth";
 import { analyzeTFG, generateArticle, refineArticle, type TransformationResult, type JournalRules } from "./lib/gemini";
 
 // Configure PDF.js worker
-pdfjs.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjs.version}/pdf.worker.min.js`;
+// Using the modern .mjs worker for PDF.js 4.x
+pdfjs.GlobalWorkerOptions.workerSrc = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjs.version}/pdf.worker.min.mjs`;
 import { Document, Packer, Paragraph, TextRun, HeadingLevel, AlignmentType, Footer, PageNumber } from "docx";
 import { saveAs } from "file-saver";
 
@@ -126,19 +127,35 @@ export default function App() {
   // ============================================
 
   const extractTextFromPDFLocally = async (file: File): Promise<string> => {
-    const arrayBuffer = await readFileAsArrayBuffer(file);
-    const loadingTask = pdfjs.getDocument({ data: arrayBuffer });
-    const pdf = await loadingTask.promise;
-    
-    let text = '';
-    for (let i = 1; i <= pdf.numPages; i++) {
-      const page = await pdf.getPage(i);
-      const content = await page.getTextContent();
-      const pageText = content.items.map((item: any) => item.str).join(' ');
-      text += pageText + '\n';
+    try {
+      const arrayBuffer = await readFileAsArrayBuffer(file);
+      const loadingTask = pdfjs.getDocument({ 
+        data: arrayBuffer,
+        useWorkerFetch: true,
+        isEvalSupported: false,
+      });
+      
+      const pdf = await loadingTask.promise;
+      console.log(`PDF loaded locally: ${pdf.numPages} pages`);
+      
+      let text = '';
+      for (let i = 1; i <= pdf.numPages; i++) {
+        const page = await pdf.getPage(i);
+        const content = await page.getTextContent();
+        const pageText = content.items
+          .map((item: any) => item.str)
+          .join(' ');
+        text += pageText + '\n';
+        
+        // Update progress if needed (optional)
+        if (i % 5 === 0) console.log(`Parsed ${i}/${pdf.numPages} pages...`);
+      }
+      
+      return text;
+    } catch (err: any) {
+      console.error("Local PDF extraction error:", err);
+      throw new Error(`Error en el procesamiento local del PDF: ${err.message}`);
     }
-    
-    return text;
   };
 
   const processFileLocally = async (file: File, setText: (text: string) => void, setFileName: (name: string) => void) => {
@@ -157,18 +174,28 @@ export default function App() {
       }
       // 2. PDF: Intentar primero en el navegador para evitar límites de servidor
       else if (file.type === 'application/pdf' || file.name.endsWith('.pdf')) {
+        // Si el archivo es muy grande (> 4MB), avisar que el backend probablemente fallará
+        const isLargeFile = file.size > 4 * 1024 * 1024;
+        
         try {
           console.log("Attempting local PDF extraction...");
           text = await extractTextFromPDFLocally(file);
           console.log("Local PDF extraction succeeded!");
-        } catch (localError) {
-          console.log("Local PDF extraction failed, falling back to backend...", localError);
-          // Fallback al backend
+        } catch (localError: any) {
+          console.log("Local PDF extraction failed, checking fallback...", localError);
+          
+          if (isLargeFile) {
+            throw new Error(`El PDF es demasiado grande (${(file.size / 1024 / 1024).toFixed(1)}MB) y la extracción local falló. Vercel no permite procesar archivos de este tamaño en el servidor. Por favor, usa la entrada manual.`);
+          }
+          
+          // Fallback al backend solo para archivos pequeños
+          console.log("Falling back to backend parser...");
           text = await callBackendParser(file);
         }
       }
       // 3. DOCX: Intentar primero en el navegador
       else if (file.name.endsWith('.docx') || file.type === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document') {
+        const isLargeFile = file.size > 4 * 1024 * 1024;
         try {
           console.log("Attempting local DOCX extraction...");
           const arrayBuffer = await readFileAsArrayBuffer(file);
@@ -176,7 +203,12 @@ export default function App() {
           text = result.value;
           console.log("Local DOCX extraction successful");
         } catch (docxErr) {
-          console.error("Local DOCX extraction failed, falling back to backend:", docxErr);
+          console.error("Local DOCX extraction failed, checking fallback:", docxErr);
+          
+          if (isLargeFile) {
+            throw new Error(`El archivo Word es demasiado grande (${(file.size / 1024 / 1024).toFixed(1)}MB) y la extracción local falló. Por favor, usa la entrada manual.`);
+          }
+          
           text = await callBackendParser(file);
         }
       }
@@ -214,13 +246,21 @@ export default function App() {
     
     if (!response.ok) {
       let errorMessage = `Error del servidor: ${response.status}`;
+      
+      // Check for specific Vercel/Server limits
+      if (response.status === 504) {
+        errorMessage = "El servidor ha tardado demasiado (Timeout). Esto suele pasar con archivos muy grandes en Vercel. Por favor, intenta copiar y pegar el texto manualmente.";
+      } else if (response.status === 413) {
+        errorMessage = "El archivo es demasiado grande para enviarlo al servidor. Por favor, intenta copiar y pegar el texto directamente.";
+      } else if (response.status === 500) {
+        errorMessage = "Error interno del servidor (500). Es posible que el archivo sea demasiado complejo o pesado para el procesamiento en la nube. Te recomendamos usar la entrada manual (Copiar/Pegar).";
+      }
+
       try {
         const errorData = JSON.parse(responseText);
         errorMessage = errorData.error || errorMessage;
       } catch (e) {
-        if (response.status === 413) {
-          errorMessage = "El archivo es demasiado grande para el servidor. Intenta copiar y pegar el texto directamente.";
-        }
+        console.error("Could not parse error response as JSON:", responseText);
       }
       throw new Error(errorMessage);
     }
