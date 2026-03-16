@@ -7,15 +7,68 @@ import fs from "fs";
 
 import { createRequire } from "module";
 const require = createRequire(import.meta.url);
-const pdf = require("pdf-parse");
+import * as pdfjs from "pdfjs-dist";
+
+async function extractTextWithPdfJs(buffer: Buffer): Promise<string> {
+  console.log("Attempting extraction with pdfjs-dist...");
+  const uint8Array = new Uint8Array(buffer);
+  
+  // Fix for "baseUrl" parameter must be specified warning
+  const standardFontDataUrl = path.join(process.cwd(), "node_modules", "pdfjs-dist", "standard_fonts") + path.sep;
+  const cMapUrl = path.join(process.cwd(), "node_modules", "pdfjs-dist", "cmaps") + path.sep;
+  
+  const loadingTask = pdfjs.getDocument({ 
+    data: uint8Array,
+    standardFontDataUrl: standardFontDataUrl,
+    cMapUrl: cMapUrl,
+    cMapPacked: true,
+    useSystemFonts: true,
+  });
+  
+  const pdfDocument = await loadingTask.promise;
+  let fullText = "";
+  
+  for (let i = 1; i <= pdfDocument.numPages; i++) {
+    const page = await pdfDocument.getPage(i);
+    const textContent = await page.getTextContent();
+    const pageText = textContent.items
+      .map((item: any) => item.str)
+      .join(" ");
+    fullText += pageText + "\n";
+  }
+  
+  return fullText;
+}
+
+let pdfParser: any = null;
 
 async function extractTextFromPDF(buffer: Buffer): Promise<string> {
+  // Try pdf-parse first
   try {
-    const data = await pdf(buffer);
-    return data.text || "";
-  } catch (error) {
-    console.error("pdf-parse error:", error);
-    throw error;
+    if (!pdfParser) {
+      try {
+        // Use require for CJS compatibility
+        const r = require("pdf-parse");
+        pdfParser = r.default || r;
+      } catch (e) {
+        console.error("Could not load pdf-parse via require:", e);
+      }
+    }
+
+    if (typeof pdfParser === "function") {
+      const data = await pdfParser(buffer);
+      if (data && data.text) return data.text;
+    }
+  } catch (e) {
+    console.error("pdf-parse failed, falling back to pdfjs-dist:", e);
+  }
+
+  // Fallback to pdfjs-dist
+  try {
+    return await extractTextWithPdfJs(buffer);
+  } catch (error: any) {
+    console.error("All PDF extraction methods failed:", error);
+    throw new Error(`Could not extract text from PDF: ${error.message}`);
   }
 }
 
