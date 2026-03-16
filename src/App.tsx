@@ -100,68 +100,46 @@ export default function App() {
     setActiveTab("abstract");
   };
 
-  const fileToBase64 = (file: File): Promise<string> => {
-    return new Promise((resolve, reject) => {
-      const reader = new FileReader();
+  const fileToBase64 = async (file: File): Promise<string> => {
+    try {
+      // Use arrayBuffer() instead of FileReader for better Safari compatibility
+      const buffer = await file.arrayBuffer();
+      const bytes = new Uint8Array(buffer);
+      let binary = "";
+      const len = bytes.byteLength;
       
-      reader.onload = () => {
-        try {
-          const arrayBuffer = reader.result as ArrayBuffer;
-          const uint8Array = new Uint8Array(arrayBuffer);
-          
-          // Convert to string in chunks to be memory efficient and avoid stack overflow
-          let binary = "";
-          const chunkSize = 8192;
-          for (let i = 0; i < uint8Array.length; i += chunkSize) {
-            // @ts-ignore - apply works fine with Uint8Array subarray
-            binary += String.fromCharCode.apply(null, uint8Array.subarray(i, i + chunkSize));
-          }
-          
-          resolve(window.btoa(binary));
-        } catch (e) {
-          reject(new Error("Error processing file data. Try a smaller file."));
-        }
-      };
-      
-      reader.onerror = () => {
-        reject(new Error("Safari blocked file access. Please try selecting the file again."));
-      };
-      
-      try {
-        reader.readAsArrayBuffer(file);
-      } catch (e) {
-        reject(new Error("Could not start reading the file."));
+      // Process in chunks to avoid stack overflow and keep it fast
+      const chunkSize = 0x8000; // 32KB chunks
+      for (let i = 0; i < len; i += chunkSize) {
+        const chunk = bytes.subarray(i, Math.min(i + chunkSize, len));
+        // @ts-ignore
+        binary += String.fromCharCode.apply(null, chunk);
       }
-    });
+      
+      return window.btoa(binary);
+    } catch (e) {
+      console.error("Base64 conversion error:", e);
+      throw new Error("Could not process the file. It might be too large or corrupted.");
+    }
   };
 
   const onDropTFG = useCallback(async (acceptedFiles: File[]) => {
     const file = acceptedFiles[0];
     if (!file) return;
     
-    // CRITICAL: Start reading IMMEDIATELY before any state updates
-    // This is the only way to satisfy Safari's strict security timing
-    let base64Data = "";
-    try {
-      base64Data = await fileToBase64(file);
-    } catch (err: any) {
-      console.error("Immediate read failed:", err);
-      setError(`Error reading file: ${err.message}`);
-      return;
-    }
-
-    // Now we can update state
     setIsParsing(true);
     setError(null);
     setTfgFileName(file.name);
     
     try {
+      const base64Data = await fileToBase64(file);
+      
       const response = await fetch(`${window.location.origin}/api/parse-file`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           base64: base64Data,
-          mimeType: file.type,
+          mimeType: file.type || "application/pdf",
           fileName: file.name
         }),
       });
@@ -172,6 +150,7 @@ export default function App() {
       }
       
       const data = await response.json();
+      if (!data.text) throw new Error("The file is empty or could not be read.");
       setTfgText(data.text);
     } catch (err: any) {
       console.error("Upload failed:", err);
@@ -186,25 +165,19 @@ export default function App() {
     const file = acceptedFiles[0];
     if (!file) return;
 
-    let base64Data = "";
-    try {
-      base64Data = await fileToBase64(file);
-    } catch (err: any) {
-      setError(`Error reading rules: ${err.message}`);
-      return;
-    }
-
     setIsParsing(true);
     setError(null);
     setRulesFileName(file.name);
     
     try {
+      const base64Data = await fileToBase64(file);
+      
       const response = await fetch(`${window.location.origin}/api/parse-file`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           base64: base64Data,
-          mimeType: file.type,
+          mimeType: file.type || "application/pdf",
           fileName: file.name
         }),
       });
@@ -228,25 +201,19 @@ export default function App() {
     const file = acceptedFiles[0];
     if (!file) return;
 
-    let base64Data = "";
-    try {
-      base64Data = await fileToBase64(file);
-    } catch (err: any) {
-      setError(`Error reading model: ${err.message}`);
-      return;
-    }
-
     setIsParsing(true);
     setError(null);
     setModelArticleFileName(file.name);
     
     try {
+      const base64Data = await fileToBase64(file);
+      
       const response = await fetch(`${window.location.origin}/api/parse-file`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           base64: base64Data,
-          mimeType: file.type,
+          mimeType: file.type || "application/pdf",
           fileName: file.name
         }),
       });
