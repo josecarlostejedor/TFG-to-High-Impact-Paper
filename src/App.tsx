@@ -103,14 +103,35 @@ export default function App() {
   const fileToBase64 = (file: File): Promise<string> => {
     return new Promise((resolve, reject) => {
       const reader = new FileReader();
-      reader.readAsDataURL(file);
+      
       reader.onload = () => {
-        const result = reader.result as string;
-        // Remove the data:mime/type;base64, prefix
-        const base64 = result.split(',')[1];
-        resolve(base64);
+        try {
+          const arrayBuffer = reader.result as ArrayBuffer;
+          const uint8Array = new Uint8Array(arrayBuffer);
+          
+          // Convert to string in chunks to be memory efficient and avoid stack overflow
+          let binary = "";
+          const chunkSize = 8192;
+          for (let i = 0; i < uint8Array.length; i += chunkSize) {
+            // @ts-ignore - apply works fine with Uint8Array subarray
+            binary += String.fromCharCode.apply(null, uint8Array.subarray(i, i + chunkSize));
+          }
+          
+          resolve(window.btoa(binary));
+        } catch (e) {
+          reject(new Error("Error processing file data. Try a smaller file."));
+        }
       };
-      reader.onerror = error => reject(error);
+      
+      reader.onerror = () => {
+        reject(new Error("Safari blocked file access. Please try selecting the file again."));
+      };
+      
+      try {
+        reader.readAsArrayBuffer(file);
+      } catch (e) {
+        reject(new Error("Could not start reading the file."));
+      }
     });
   };
 
@@ -118,19 +139,28 @@ export default function App() {
     const file = acceptedFiles[0];
     if (!file) return;
     
+    // CRITICAL: Start reading IMMEDIATELY before any state updates
+    // This is the only way to satisfy Safari's strict security timing
+    let base64Data = "";
+    try {
+      base64Data = await fileToBase64(file);
+    } catch (err: any) {
+      console.error("Immediate read failed:", err);
+      setError(`Error reading file: ${err.message}`);
+      return;
+    }
+
+    // Now we can update state
     setIsParsing(true);
     setError(null);
     setTfgFileName(file.name);
     
     try {
-      // Convert to Base64 immediately to avoid Safari losing file access
-      const base64 = await fileToBase64(file);
-      
       const response = await fetch(`${window.location.origin}/api/parse-file`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          base64,
+          base64: base64Data,
           mimeType: file.type,
           fileName: file.name
         }),
@@ -144,8 +174,8 @@ export default function App() {
       const data = await response.json();
       setTfgText(data.text);
     } catch (err: any) {
-      console.error("Error reading file:", err);
-      setError(`Error reading file: ${err.message}`);
+      console.error("Upload failed:", err);
+      setError(`Upload failed: ${err.message}`);
       setTfgFileName(""); 
     } finally {
       setIsParsing(false);
@@ -156,18 +186,24 @@ export default function App() {
     const file = acceptedFiles[0];
     if (!file) return;
 
+    let base64Data = "";
+    try {
+      base64Data = await fileToBase64(file);
+    } catch (err: any) {
+      setError(`Error reading rules: ${err.message}`);
+      return;
+    }
+
     setIsParsing(true);
     setError(null);
     setRulesFileName(file.name);
     
     try {
-      const base64 = await fileToBase64(file);
-      
       const response = await fetch(`${window.location.origin}/api/parse-file`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          base64,
+          base64: base64Data,
           mimeType: file.type,
           fileName: file.name
         }),
@@ -181,8 +217,7 @@ export default function App() {
       const data = await response.json();
       setJournalRulesText(data.text);
     } catch (err: any) {
-      console.error("Error reading rules:", err);
-      setError(`Error reading rules: ${err.message}`);
+      setError(`Upload failed: ${err.message}`);
       setRulesFileName("");
     } finally {
       setIsParsing(false);
@@ -193,18 +228,24 @@ export default function App() {
     const file = acceptedFiles[0];
     if (!file) return;
 
+    let base64Data = "";
+    try {
+      base64Data = await fileToBase64(file);
+    } catch (err: any) {
+      setError(`Error reading model: ${err.message}`);
+      return;
+    }
+
     setIsParsing(true);
     setError(null);
     setModelArticleFileName(file.name);
     
     try {
-      const base64 = await fileToBase64(file);
-      
       const response = await fetch(`${window.location.origin}/api/parse-file`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          base64,
+          base64: base64Data,
           mimeType: file.type,
           fileName: file.name
         }),
@@ -218,8 +259,7 @@ export default function App() {
       const data = await response.json();
       setModelArticleText(data.text);
     } catch (err: any) {
-      console.error("Error reading model article:", err);
-      setError(`Error reading model article: ${err.message}`);
+      setError(`Upload failed: ${err.message}`);
       setModelArticleFileName("");
     } finally {
       setIsParsing(false);
