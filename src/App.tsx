@@ -27,6 +27,26 @@ function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
 
+function diagnoseFileIssue(file: File) {
+  console.log("=== DIAGNÓSTICO DE ARCHIVO ===");
+  console.log("File exists:", !!file);
+  
+  if (file) {
+    console.log("File name:", file.name);
+    console.log("File size:", file.size);
+    console.log("File type:", file.type);
+    console.log("Last modified:", file.lastModified);
+    
+    // Verificar métodos disponibles
+    console.log("Has slice:", typeof file.slice === 'function');
+    console.log("Has arrayBuffer:", typeof file.arrayBuffer === 'function');
+    console.log("Has text:", typeof file.text === 'function');
+  }
+  
+  console.log("Navigator:", navigator.userAgent);
+  console.log("==============================");
+}
+
 export default function App() {
   const [tfgText, setTfgText] = useState<string>("");
   const [journalName, setJournalName] = useState<string>("");
@@ -89,18 +109,27 @@ export default function App() {
     setIsParsing(true);
     setError(null);
     
+    diagnoseFileIssue(file);
+    
     try {
+      // Safari/iOS Fix: Convert File to a fresh Blob
+      // This often resolves "The string did not match the expected pattern" errors
+      const blob = new Blob([file], { type: file.type });
       const formData = new FormData();
-      formData.append("file", file);
+      formData.append("file", blob, file.name);
       
-      const response = await fetch("/api/parse-file", {
+      // Use absolute URL to avoid any relative path issues in Safari
+      const uploadUrl = `${window.location.origin}/api/parse-file`;
+      
+      const response = await fetch(uploadUrl, {
         method: "POST",
         body: formData,
+        // Do NOT set Content-Type header, let the browser set the boundary
       });
       
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.error || "Failed to parse file on server");
+        throw new Error(errorData.error || `Server error: ${response.status}`);
       }
       
       const data = await response.json();
@@ -111,7 +140,12 @@ export default function App() {
       setTfgText(data.text);
     } catch (err: any) {
       console.error("Error reading file:", err);
-      setError(`Error reading file: ${err.message || "Unknown error"}`);
+      // Provide more context for the specific Safari error
+      let msg = err.message || "Unknown error";
+      if (msg.includes("match the expected pattern")) {
+        msg = "Safari File Error: Please try selecting the file again or use the 'Paste Text' option.";
+      }
+      setError(`Error reading file: ${msg}`);
       setTfgFileName(""); 
     } finally {
       setIsParsing(false);
@@ -127,18 +161,23 @@ export default function App() {
     setIsParsing(true);
     setError(null);
     
+    diagnoseFileIssue(file);
+    
     try {
+      const blob = new Blob([file], { type: file.type });
       const formData = new FormData();
-      formData.append("file", file);
+      formData.append("file", blob, file.name);
       
-      const response = await fetch("/api/parse-file", {
+      const uploadUrl = `${window.location.origin}/api/parse-file`;
+      
+      const response = await fetch(uploadUrl, {
         method: "POST",
         body: formData,
       });
       
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.error || "Failed to parse rules on server");
+        throw new Error(errorData.error || `Server error: ${response.status}`);
       }
       
       const data = await response.json();
@@ -149,7 +188,11 @@ export default function App() {
       setJournalRulesText(data.text);
     } catch (err: any) {
       console.error("Error reading rules:", err);
-      setError(`Error reading rules: ${err.message || "Unknown error"}`);
+      let msg = err.message || "Unknown error";
+      if (msg.includes("match the expected pattern")) {
+        msg = "Safari File Error: Please try selecting the file again.";
+      }
+      setError(`Error reading rules: ${msg}`);
       setRulesFileName("");
     } finally {
       setIsParsing(false);
@@ -165,18 +208,23 @@ export default function App() {
     setIsParsing(true);
     setError(null);
     
+    diagnoseFileIssue(file);
+    
     try {
+      const blob = new Blob([file], { type: file.type });
       const formData = new FormData();
-      formData.append("file", file);
+      formData.append("file", blob, file.name);
       
-      const response = await fetch("/api/parse-file", {
+      const uploadUrl = `${window.location.origin}/api/parse-file`;
+      
+      const response = await fetch(uploadUrl, {
         method: "POST",
         body: formData,
       });
       
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.error || "Failed to parse model article on server");
+        throw new Error(errorData.error || `Server error: ${response.status}`);
       }
       
       const data = await response.json();
@@ -187,7 +235,11 @@ export default function App() {
       setModelArticleText(data.text);
     } catch (err: any) {
       console.error("Error reading model article:", err);
-      setError(`Error reading model article: ${err.message || "Unknown error"}`);
+      let msg = err.message || "Unknown error";
+      if (msg.includes("match the expected pattern")) {
+        msg = "Safari File Error: Please try selecting the file again.";
+      }
+      setError(`Error reading model article: ${msg}`);
       setModelArticleFileName("");
     } finally {
       setIsParsing(false);
