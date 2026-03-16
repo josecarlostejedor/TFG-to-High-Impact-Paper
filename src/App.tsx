@@ -19,7 +19,12 @@ import { useDropzone } from "react-dropzone";
 import { motion, AnimatePresence } from "motion/react";
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
+import * as pdfjs from "pdfjs-dist";
+import mammoth from "mammoth";
 import { analyzeTFG, generateArticle, refineArticle, type TransformationResult, type JournalRules } from "./lib/gemini";
+
+// Configure PDF.js worker
+pdfjs.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjs.version}/pdf.worker.min.js`;
 import { Document, Packer, Paragraph, TextRun, HeadingLevel, AlignmentType, Footer, PageNumber } from "docx";
 import { saveAs } from "file-saver";
 
@@ -120,96 +125,108 @@ export default function App() {
   // FILE PROCESSING
   // ============================================
 
+  const extractTextFromPDFLocally = async (file: File): Promise<string> => {
+    const arrayBuffer = await readFileAsArrayBuffer(file);
+    const loadingTask = pdfjs.getDocument({ data: arrayBuffer });
+    const pdf = await loadingTask.promise;
+    
+    let text = '';
+    for (let i = 1; i <= pdf.numPages; i++) {
+      const page = await pdf.getPage(i);
+      const content = await page.getTextContent();
+      const pageText = content.items.map((item: any) => item.str).join(' ');
+      text += pageText + '\n';
+    }
+    
+    return text;
+  };
+
   const processFileLocally = async (file: File, setText: (text: string) => void, setFileName: (name: string) => void) => {
     setIsParsing(true);
     setError(null);
     setFileName(file.name);
     
     try {
-      const isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
-      const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
-      const isSafariIOS = isSafari && isIOS;
-      
       console.log(`Processing file: ${file.name} (${(file.size / 1024).toFixed(2)} KB)`);
       
       let text = '';
       
-      // 1. Archivos de texto plano: Leer directamente en el frontend
+      // 1. Archivos de texto plano
       if (file.type === 'text/plain' || file.name.endsWith('.txt')) {
         text = await readFileAsText(file);
       }
-      // 2. PDF y DOCX: Manejo especial para iPhone
-      else if (file.type === 'application/pdf' || file.name.endsWith('.pdf') || file.name.endsWith('.docx')) {
-        if (isSafariIOS) {
-          setError(`
-            📱 iPhone detectado. Para mejores resultados con PDFs y Word:
-            
-            1. Abre el archivo en tu móvil (Archivos, Libros, etc.)
-            2. Selecciona todo el texto y dale a "Copiar".
-            3. Pégalo usando la opción "Pegar Texto Manualmente" que verás abajo.
-            
-            Esta es una limitación de seguridad de Safari iOS, no un error de la app.
-          `);
-          setFileName('');
-          setIsParsing(false);
-          return;
-        } else {
-          // En Desktop/Android, usar el backend con conversión segura
-          const dataUrl = await readFileAsDataURL(file);
-          const base64 = dataUrl.split(',')[1];
-          
-          const response = await fetch(`${window.location.origin}/api/parse-file`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              base64: base64,
-              mimeType: file.type || (file.name.endsWith('.pdf') ? 'application/pdf' : 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'),
-              fileName: file.name
-            }),
-          });
-          
-          // Read the body once as text to avoid "body stream already read" errors
-          const responseText = await response.text();
-          
-          if (!response.ok) {
-            let errorMessage = `Error del servidor: ${response.status}`;
-            
-            try {
-              const errorData = JSON.parse(responseText);
-              errorMessage = errorData.error || errorMessage;
-            } catch (e) {
-              if (responseText.includes("Payload Too Large") || response.status === 413) {
-                errorMessage = "El archivo es demasiado grande para procesarlo. Intenta con uno más pequeño o pega el texto manualmente.";
-              } else {
-                console.error("Non-JSON error response:", responseText);
-              }
-            }
-            throw new Error(errorMessage);
-          }
-          
-          try {
-            const data = JSON.parse(responseText);
-            text = data.text;
-          } catch (e) {
-            console.error("Failed to parse successful response as JSON:", responseText);
-            throw new Error("El servidor devolvió una respuesta inválida.");
-          }
+      // 2. PDF: Intentar primero en el navegador para evitar límites de servidor
+      else if (file.type === 'application/pdf' || file.name.endsWith('.pdf')) {
+        try {
+          console.log("Attempting local PDF extraction...");
+          text = await extractTextFromPDFLocally(file);
+          console.log("Local PDF extraction succeeded!");
+        } catch (localError) {
+          console.log("Local PDF extraction failed, falling back to backend...", localError);
+          // Fallback al backend
+          text = await callBackendParser(file);
+        }
+      }
+      // 3. DOCX: Intentar primero en el navegador
+      else if (file.name.endsWith('.docx') || file.type === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document') {
+        try {
+          console.log("Attempting local DOCX extraction...");
+          const arrayBuffer = await readFileAsArrayBuffer(file);
+          const result = await mammoth.extractRawText({ arrayBuffer });
+          text = result.value;
+          console.log("Local DOCX extraction successful");
+        } catch (docxErr) {
+          console.error("Local DOCX extraction failed, falling back to backend:", docxErr);
+          text = await callBackendParser(file);
         }
       }
       
-      if (text) {
+      if (text && text.trim().length > 0) {
         setText(text);
-      } else if (!isSafariIOS) {
-        throw new Error("No se pudo extraer texto del archivo.");
+      } else {
+        throw new Error("No se pudo extraer texto del archivo. El archivo podría estar vacío o ser una imagen sin texto.");
       }
       
     } catch (err: any) {
-      console.error("Error procesando archivo:", err);
+      console.error("File processing error:", err);
       setError(`Error: ${err.message}. Por favor, usa la entrada manual.`);
       setFileName('');
     } finally {
       setIsParsing(false);
     }
+  };
+
+  const callBackendParser = async (file: File): Promise<string> => {
+    const dataUrl = await readFileAsDataURL(file);
+    const base64 = dataUrl.split(',')[1];
+    
+    const response = await fetch(`${window.location.origin}/api/parse-file`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        base64: base64,
+        mimeType: file.type || (file.name.endsWith('.pdf') ? 'application/pdf' : 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'),
+        fileName: file.name
+      }),
+    });
+    
+    const responseText = await response.text();
+    
+    if (!response.ok) {
+      let errorMessage = `Error del servidor: ${response.status}`;
+      try {
+        const errorData = JSON.parse(responseText);
+        errorMessage = errorData.error || errorMessage;
+      } catch (e) {
+        if (response.status === 413) {
+          errorMessage = "El archivo es demasiado grande para el servidor. Intenta copiar y pegar el texto directamente.";
+        }
+      }
+      throw new Error(errorMessage);
+    }
+    
+    const data = JSON.parse(responseText);
+    return data.text;
   };
 
   const onDropTFG = useCallback(async (acceptedFiles: File[]) => {
