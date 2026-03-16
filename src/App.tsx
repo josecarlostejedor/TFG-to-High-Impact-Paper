@@ -168,25 +168,32 @@ export default function App() {
             }),
           });
           
+          // Read the body once as text to avoid "body stream already read" errors
+          const responseText = await response.text();
+          
           if (!response.ok) {
             let errorMessage = `Error del servidor: ${response.status}`;
+            
             try {
-              const errorData = await response.json();
+              const errorData = JSON.parse(responseText);
               errorMessage = errorData.error || errorMessage;
             } catch (e) {
-              // Si no es JSON, intentar leer como texto
-              const textError = await response.text();
-              if (textError.includes("Payload Too Large")) {
+              if (responseText.includes("Payload Too Large") || response.status === 413) {
                 errorMessage = "El archivo es demasiado grande para procesarlo. Intenta con uno más pequeño o pega el texto manualmente.";
               } else {
-                console.error("Non-JSON error response:", textError);
+                console.error("Non-JSON error response:", responseText);
               }
             }
             throw new Error(errorMessage);
           }
           
-          const data = await response.json();
-          text = data.text;
+          try {
+            const data = JSON.parse(responseText);
+            text = data.text;
+          } catch (e) {
+            console.error("Failed to parse successful response as JSON:", responseText);
+            throw new Error("El servidor devolvió una respuesta inválida.");
+          }
         }
       }
       
