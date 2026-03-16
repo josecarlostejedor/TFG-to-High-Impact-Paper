@@ -104,7 +104,12 @@ export default function App() {
     const file = acceptedFiles[0];
     if (!file) return;
     
-    setTfgFileName(file.name);
+    // Safari Fix: Capture file data IMMEDIATELY before any state updates
+    // This prevents Safari from losing the file reference during re-renders
+    const fileBlob = new Blob([file], { type: file.type });
+    const fileName = file.name;
+
+    setTfgFileName(fileName);
     setTfgText(""); 
     setIsParsing(true);
     setError(null);
@@ -112,20 +117,22 @@ export default function App() {
     diagnoseFileIssue(file);
     
     try {
-      // Safari/iOS Fix: Convert File to a fresh Blob
-      // This often resolves "The string did not match the expected pattern" errors
-      const blob = new Blob([file], { type: file.type });
       const formData = new FormData();
-      formData.append("file", blob, file.name);
+      formData.append("file", fileBlob, fileName);
       
-      // Use absolute URL to avoid any relative path issues in Safari
       const uploadUrl = `${window.location.origin}/api/parse-file`;
       
+      // Use AbortController for a longer timeout (60s) as recommended for Safari
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 60000);
+
       const response = await fetch(uploadUrl, {
         method: "POST",
         body: formData,
-        // Do NOT set Content-Type header, let the browser set the boundary
+        signal: controller.signal,
       });
+      
+      clearTimeout(timeoutId);
       
       if (!response.ok) {
         const errorData = await response.json();
@@ -140,11 +147,14 @@ export default function App() {
       setTfgText(data.text);
     } catch (err: any) {
       console.error("Error reading file:", err);
-      // Provide more context for the specific Safari error
       let msg = err.message || "Unknown error";
-      if (msg.includes("match the expected pattern")) {
-        msg = "Safari File Error: Please try selecting the file again or use the 'Paste Text' option.";
+      
+      if (err.name === 'AbortError') {
+        msg = "The request timed out (60s). Please try again with a smaller file or a faster connection.";
+      } else if (msg.includes("match the expected pattern") || msg.includes("NetworkError")) {
+        msg = "Safari File Error: Safari lost access to the file. Please try selecting it again or use the 'Paste Text' option.";
       }
+      
       setError(`Error reading file: ${msg}`);
       setTfgFileName(""); 
     } finally {
@@ -156,7 +166,11 @@ export default function App() {
     const file = acceptedFiles[0];
     if (!file) return;
 
-    setRulesFileName(file.name);
+    // Safari Fix: Capture file data IMMEDIATELY
+    const fileBlob = new Blob([file], { type: file.type });
+    const fileName = file.name;
+
+    setRulesFileName(fileName);
     setJournalRulesText(""); 
     setIsParsing(true);
     setError(null);
@@ -164,16 +178,21 @@ export default function App() {
     diagnoseFileIssue(file);
     
     try {
-      const blob = new Blob([file], { type: file.type });
       const formData = new FormData();
-      formData.append("file", blob, file.name);
+      formData.append("file", fileBlob, fileName);
       
       const uploadUrl = `${window.location.origin}/api/parse-file`;
       
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 60000);
+
       const response = await fetch(uploadUrl, {
         method: "POST",
         body: formData,
+        signal: controller.signal,
       });
+      
+      clearTimeout(timeoutId);
       
       if (!response.ok) {
         const errorData = await response.json();
@@ -189,9 +208,13 @@ export default function App() {
     } catch (err: any) {
       console.error("Error reading rules:", err);
       let msg = err.message || "Unknown error";
-      if (msg.includes("match the expected pattern")) {
+      
+      if (err.name === 'AbortError') {
+        msg = "The request timed out (60s).";
+      } else if (msg.includes("match the expected pattern") || msg.includes("NetworkError")) {
         msg = "Safari File Error: Please try selecting the file again.";
       }
+      
       setError(`Error reading rules: ${msg}`);
       setRulesFileName("");
     } finally {
@@ -203,7 +226,11 @@ export default function App() {
     const file = acceptedFiles[0];
     if (!file) return;
 
-    setModelArticleFileName(file.name);
+    // Safari Fix: Capture file data IMMEDIATELY
+    const fileBlob = new Blob([file], { type: file.type });
+    const fileName = file.name;
+
+    setModelArticleFileName(fileName);
     setModelArticleText(""); 
     setIsParsing(true);
     setError(null);
@@ -211,16 +238,21 @@ export default function App() {
     diagnoseFileIssue(file);
     
     try {
-      const blob = new Blob([file], { type: file.type });
       const formData = new FormData();
-      formData.append("file", blob, file.name);
+      formData.append("file", fileBlob, fileName);
       
       const uploadUrl = `${window.location.origin}/api/parse-file`;
       
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 60000);
+
       const response = await fetch(uploadUrl, {
         method: "POST",
         body: formData,
+        signal: controller.signal,
       });
+      
+      clearTimeout(timeoutId);
       
       if (!response.ok) {
         const errorData = await response.json();
@@ -236,15 +268,20 @@ export default function App() {
     } catch (err: any) {
       console.error("Error reading model article:", err);
       let msg = err.message || "Unknown error";
-      if (msg.includes("match the expected pattern")) {
+      
+      if (err.name === 'AbortError') {
+        msg = "The request timed out (60s).";
+      } else if (msg.includes("match the expected pattern") || msg.includes("NetworkError")) {
         msg = "Safari File Error: Please try selecting the file again.";
       }
+      
       setError(`Error reading model article: ${msg}`);
       setModelArticleFileName("");
     } finally {
       setIsParsing(false);
     }
   }, []);
+
 
   // @ts-ignore
   const { getRootProps: getTFGProps, getInputProps: getTFGInputProps, isDragActive: isTFGActive } = useDropzone({ 
