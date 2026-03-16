@@ -24,8 +24,8 @@ import mammoth from "mammoth";
 import { analyzeTFG, generateArticle, refineArticle, type TransformationResult, type JournalRules } from "./lib/gemini";
 
 // Configure PDF.js worker
-// Using the modern .mjs worker for PDF.js 4.x
-pdfjs.GlobalWorkerOptions.workerSrc = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjs.version}/pdf.worker.min.mjs`;
+// Using unpkg for better version reliability
+pdfjs.GlobalWorkerOptions.workerSrc = `https://unpkg.com/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.mjs`;
 import { Document, Packer, Paragraph, TextRun, HeadingLevel, AlignmentType, Footer, PageNumber } from "docx";
 import { saveAs } from "file-saver";
 
@@ -39,16 +39,13 @@ function diagnoseFileIssue(file: File) {
   
   if (file) {
     console.log("File name:", file.name);
-    console.log("File size:", file.size);
+    console.log("File size:", file.size, "bytes");
     console.log("File type:", file.type);
-    console.log("Last modified:", file.lastModified);
-    
-    // Verificar métodos disponibles
-    console.log("Has slice:", typeof file.slice === 'function');
-    console.log("Has arrayBuffer:", typeof file.arrayBuffer === 'function');
-    console.log("Has text:", typeof file.text === 'function');
+    console.log("Last modified:", new Date(file.lastModified).toISOString());
   }
   
+  console.log("PDF.js version:", pdfjs.version);
+  console.log("Worker URL:", pdfjs.GlobalWorkerOptions.workerSrc);
   console.log("Navigator:", navigator.userAgent);
   console.log("==============================");
 }
@@ -129,32 +126,62 @@ export default function App() {
   const extractTextFromPDFLocally = async (file: File): Promise<string> => {
     try {
       const arrayBuffer = await readFileAsArrayBuffer(file);
+      
+      // Check for PDF header
+      const header = new Uint8Array(arrayBuffer.slice(0, 5));
+      const headerStr = Array.from(header).map(b => String.fromCharCode(b)).join('');
+      if (headerStr !== '%PDF-') {
+        throw new Error("El archivo no parece ser un PDF válido (falta la cabecera %PDF-).");
+      }
+
+      // Configure PDF.js to be as lightweight as possible
       const loadingTask = pdfjs.getDocument({ 
         data: arrayBuffer,
         useWorkerFetch: true,
         isEvalSupported: false,
+        disableFontFace: true, // Reduce memory/CPU
       });
       
       const pdf = await loadingTask.promise;
       console.log(`PDF loaded locally: ${pdf.numPages} pages`);
       
       let text = '';
-      for (let i = 1; i <= pdf.numPages; i++) {
-        const page = await pdf.getPage(i);
-        const content = await page.getTextContent();
-        const pageText = content.items
-          .map((item: any) => item.str)
-          .join(' ');
-        text += pageText + '\n';
-        
-        // Update progress if needed (optional)
-        if (i % 5 === 0) console.log(`Parsed ${i}/${pdf.numPages} pages...`);
+      const maxPages = 500; // Safety limit
+      const numPages = Math.min(pdf.numPages, maxPages);
+      
+      if (pdf.numPages > maxPages) {
+        console.warn(`PDF has too many pages (${pdf.numPages}). Limiting to ${maxPages}.`);
+      }
+
+      for (let i = 1; i <= numPages; i++) {
+        try {
+          const page = await pdf.getPage(i);
+          const content = await page.getTextContent();
+          const pageText = content.items
+            .map((item: any) => item.str)
+            .join(' ');
+          text += pageText + '\n';
+          
+          if (i % 10 === 0) console.log(`Parsed ${i}/${numPages} pages...`);
+        } catch (pageErr) {
+          console.warn(`Error parsing page ${i}, skipping...`, pageErr);
+        }
       }
       
+      if (text.trim().length === 0) {
+        throw new Error("El PDF no parece contener texto extraíble (podría ser un escaneo o imagen).");
+      }
+
       return text;
     } catch (err: any) {
       console.error("Local PDF extraction error:", err);
-      throw new Error(`Error en el procesamiento local del PDF: ${err.message}`);
+      if (err.name === 'PasswordException') {
+        throw new Error("El PDF está protegido con contraseña. Por favor, quita la protección o usa el pegado manual.");
+      }
+      if (err.message && err.message.includes('Worker')) {
+        throw new Error("Error al cargar el motor de PDF. Esto puede deberse a tu conexión o bloqueadores de anuncios. Por favor, usa el pegado manual.");
+      }
+      throw new Error(err.message || "Error en el procesamiento local del PDF");
     }
   };
 
@@ -164,18 +191,29 @@ export default function App() {
     setFileName(file.name);
     
     try {
+      diagnoseFileIssue(file);
       console.log(`Processing file: ${file.name} (${(file.size / 1024).toFixed(2)} KB)`);
       
       let text = '';
+      const lowerName = file.name.toLowerCase();
+
+      // Check for unsupported formats
+      if (lowerName.endsWith('.doc')) {
+        throw new Error("El formato .doc (Word antiguo) no es compatible. Por favor, guarda el archivo como .docx o usa el pegado manual.");
+      }
+      if (lowerName.endsWith('.rtf') || lowerName.endsWith('.odt')) {
+        throw new Error("Este formato de archivo no es compatible directamente. Por favor, usa el pegado manual o convierte el archivo a .docx.");
+      }
       
       // 1. Archivos de texto plano
-      if (file.type === 'text/plain' || file.name.endsWith('.txt')) {
+      if (file.type === 'text/plain' || lowerName.endsWith('.txt')) {
         text = await readFileAsText(file);
       }
       // 2. PDF: Intentar primero en el navegador para evitar límites de servidor
       else if (file.type === 'application/pdf' || file.name.endsWith('.pdf')) {
-        // Si el archivo es muy grande (> 4MB), avisar que el backend probablemente fallará
-        const isLargeFile = file.size > 4 * 1024 * 1024;
+        // Vercel tiene un límite de 4.5MB para el cuerpo de la petición.
+        // Un archivo de 3MB en Base64 ya roza los 4MB.
+        const isLargeFile = file.size > 3 * 1024 * 1024;
         
         try {
           console.log("Attempting local PDF extraction...");
@@ -185,7 +223,7 @@ export default function App() {
           console.log("Local PDF extraction failed, checking fallback...", localError);
           
           if (isLargeFile) {
-            throw new Error(`El PDF es demasiado grande (${(file.size / 1024 / 1024).toFixed(1)}MB) y la extracción local falló. Vercel no permite procesar archivos de este tamaño en el servidor. Por favor, usa la entrada manual.`);
+            throw new Error(`El PDF es demasiado grande (${(file.size / 1024 / 1024).toFixed(1)}MB) y la extracción local falló. Los servidores en la nube tienen límites estrictos (4.5MB). Por favor, usa la entrada manual.`);
           }
           
           // Fallback al backend solo para archivos pequeños
@@ -195,7 +233,7 @@ export default function App() {
       }
       // 3. DOCX: Intentar primero en el navegador
       else if (file.name.endsWith('.docx') || file.type === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document') {
-        const isLargeFile = file.size > 4 * 1024 * 1024;
+        const isLargeFile = file.size > 3 * 1024 * 1024;
         try {
           console.log("Attempting local DOCX extraction...");
           const arrayBuffer = await readFileAsArrayBuffer(file);
@@ -221,7 +259,7 @@ export default function App() {
       
     } catch (err: any) {
       console.error("File processing error:", err);
-      setError(`Error: ${err.message}. Por favor, usa la entrada manual.`);
+      setError(`${err.message}`);
       setFileName('');
     } finally {
       setIsParsing(false);
@@ -809,51 +847,38 @@ ${result.coverLetter}
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2 text-sm font-medium text-neutral-500 uppercase tracking-wider">
                   <FileText size={16} />
-                  Step 1: Upload TFG
+                  Paso 1: Sube tu TFG
                 </div>
                 <button 
                   onClick={() => setShowManualInput(!showManualInput)}
-                  className="text-xs text-emerald-600 hover:underline font-medium"
+                  className="text-xs text-emerald-600 hover:underline font-medium flex items-center gap-1"
                 >
-                  {showManualInput ? "Use File Upload" : "Paste Text Manually"}
+                  {showManualInput ? <Upload size={12} /> : <FileText size={12} />}
+                  {showManualInput ? "Usar Subida de Archivo" : "Pegar Texto Manualmente"}
                 </button>
               </div>
-
-              {isIPhone && !tfgText && (
-                <div className="p-4 bg-amber-50 border border-amber-200 rounded-xl">
-                  <div className="flex items-center gap-2 text-amber-800 font-medium mb-2">
-                    <AlertCircle size={18} />
-                    iPhone detectado
-                  </div>
-                  <p className="text-xs text-amber-700 mb-3">
-                    Para la mejor experiencia en iPhone, por favor pega el texto de tu TFG directamente:
-                  </p>
-                  <textarea
-                    placeholder="Pega aquí el texto de tu TFG..."
-                    className="w-full h-32 bg-white border border-amber-200 rounded-xl p-3 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500/20"
-                    value={tfgText}
-                    onChange={(e) => {
-                      setTfgText(e.target.value);
-                      setTfgFileName("Pegado Manual");
-                    }}
-                  />
-                </div>
-              )}
 
               {showManualInput ? (
                 <div className="space-y-2">
                   <textarea
-                    placeholder="Paste your TFG text here..."
+                    placeholder="Pega aquí el texto de tu TFG..."
                     className="w-full h-48 bg-white border border-neutral-200 rounded-2xl p-4 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all resize-none text-sm"
                     value={tfgText}
                     onChange={(e) => {
                       setTfgText(e.target.value);
-                      if (e.target.value) setTfgFileName("Manual Input");
+                      if (e.target.value) setTfgFileName("Entrada Manual");
                     }}
                   />
-                  <p className="text-[10px] text-neutral-400 italic">
-                    Tip: If the PDF reader fails, copy and paste the text from your document here.
-                  </p>
+                  <div className="flex justify-between items-center">
+                    <p className="text-[10px] text-neutral-400 italic">
+                      Tip: Si el lector de PDF falla, copia y pega el texto de tu documento aquí.
+                    </p>
+                    {tfgText && (
+                      <span className="text-[10px] font-mono text-neutral-400">
+                        {tfgText.length.toLocaleString()} caracteres
+                      </span>
+                    )}
+                  </div>
                 </div>
               ) : (
                 <div 
@@ -870,13 +895,20 @@ ${result.coverLetter}
                   </div>
                   <div>
                     <p className="font-medium">
-                      {isParsing ? "Reading file..." : (tfgText && !showManualInput ? "TFG Loaded Successfully" : "Drop your TFG here")}
+                      {isParsing ? "Leyendo archivo..." : (tfgText && !showManualInput ? "TFG Cargado con Éxito" : "Suelta tu TFG aquí")}
                     </p>
-                    <p className="text-xs text-neutral-400 mt-1">PDF, DOCX, or TXT</p>
+                    <p className="text-xs text-neutral-400 mt-1">PDF, DOCX, o TXT</p>
                     {tfgFileName && !showManualInput && (
-                      <p className="text-xs font-mono text-emerald-600 mt-2 bg-emerald-50 px-2 py-1 rounded inline-block">
-                        {tfgFileName}
-                      </p>
+                      <div className="flex flex-col items-center gap-1 mt-2">
+                        <p className="text-xs font-mono text-emerald-600 bg-emerald-50 px-2 py-1 rounded inline-block">
+                          {tfgFileName}
+                        </p>
+                        {tfgText && (
+                          <span className="text-[10px] text-neutral-400">
+                            {tfgText.length.toLocaleString()} caracteres extraídos
+                          </span>
+                        )}
+                      </div>
                     )}
                   </div>
                 </div>
@@ -976,17 +1008,24 @@ ${result.coverLetter}
                 className="p-4 bg-red-50 border border-red-100 rounded-xl text-red-700 text-sm flex items-start gap-3"
               >
                 <AlertCircle size={18} className="shrink-0 mt-0.5" />
-                <div className="space-y-2">
+                <div className="space-y-3">
                   <p className="font-bold">Problema con el archivo</p>
-                  <p className="opacity-90 whitespace-pre-wrap">{error}</p>
-                  {isIPhone && (
+                  <p className="opacity-90 whitespace-pre-wrap leading-relaxed">{error}</p>
+                  <div className="flex flex-wrap gap-2 pt-1">
                     <button
                       onClick={() => setShowManualInput(true)}
-                      className="mt-2 px-3 py-1.5 bg-red-100 hover:bg-red-200 rounded-lg text-xs font-medium transition-colors"
+                      className="px-3 py-1.5 bg-red-100 hover:bg-red-200 rounded-lg text-xs font-medium transition-colors flex items-center gap-1.5"
                     >
-                      Cambiar a Pegado Manual
+                      <FileText size={12} />
+                      Usar Entrada Manual (Copiar/Pegar)
                     </button>
-                  )}
+                    <button
+                      onClick={() => setError(null)}
+                      className="px-3 py-1.5 bg-white border border-red-200 hover:bg-red-50 rounded-lg text-xs font-medium transition-colors"
+                    >
+                      Intentar de nuevo
+                    </button>
+                  </div>
                 </div>
               </motion.div>
             )}
