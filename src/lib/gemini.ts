@@ -39,6 +39,7 @@ export interface TransformationResult {
     description: string;
     recommendedLocation: string;
     formatRequired: string;
+    pageNumber?: string; // Page number in original TFG or "crear figura"
   }[];
   coverLetter: string;
   checklist: string[];
@@ -93,11 +94,12 @@ export async function generateArticle(tfgText: string, journalRules: JournalRule
   SISTEMA DE GESTIÓN DE TABLAS E IMÁGENES:
   1. IDENTIFICACIÓN: Create a detailed "visualInventory" of all tables and figures found in the TFG.
   2. UBICACIÓN: Mark their recommended location in the text with placeholders like "[INSERT TABLE X]".
-  3. FORMATEO: For tables, provide a clear text-based representation (not HTML) that follows the journal's style.
+  3. FORMATEO: For tables, provide a clear text-based representation (not HTML) that follows the journal's style in the "tables" field.
+  4. PAGE NUMBERS: For each figure, identify the page number where it appears in the original TFG. If it's a new figure that needs to be created, set the page number to "crear figura".
   
   SISTEMA AVANZADO DE ANÁLISIS ESTADÍSTICO CON TABLA RESUMEN PROFESIONAL:
   1. EXTRACCIÓN Y CLASIFICACIÓN: Identificar TODAS las pruebas estadísticas (paramétricas/no paramétricas), variables (dependientes/independientes), estadísticos (t, F, U, χ²), gl, valores p exactos, tamaños del efecto (Cohen's d, η², V de Cramer) e IC95%. Identificar software y versión.
-  2. INTEGRACIÓN EN MÉTODOS: El apartado "STATISTICAL ANALYSIS" dentro de "METHODS" debe ser extenso y detallado. Al final de este apartado, DEBES incluir una tabla resumen en formato texto (usando pipes | para las columnas y filas, ej: | Col 1 | Col 2 |) con las siguientes columnas: Objetivo | Variables | Prueba | Estadístico | IC95% | Valor p | Tamaño del efecto.
+  2. INTEGRACIÓN EN MÉTODOS Y TABLAS: El apartado "STATISTICAL ANALYSIS" dentro de "METHODS" debe ser extenso y detallado. Al final de este apartado, DEBES incluir una tabla resumen en formato texto (usando pipes | para las columnas y filas). ADEMÁS, incluye esta misma "STATISTICAL SUMMARY TABLE" al principio del campo "tables" para que sea visible en la sección de tablas.
   3. VERIFICACIÓN Y CÁLCULO: Validar la coherencia prueba-variable. Si faltan tamaños del efecto, CALCULARLOS (t-test -> d=2t/√gl; ANOVA -> η²=F·gl_e/(F·gl_e+gl_d); Chi-sq -> V=√(χ²/(n·min(k-1,r-1)))).
   4. REPORTE EN RESULTADOS: Reporte riguroso en Resultados con estadísticos completos.
   
@@ -186,9 +188,10 @@ export async function generateArticle(tfgText: string, journalRules: JournalRule
                 title: { type: Type.STRING },
                 description: { type: Type.STRING },
                 recommendedLocation: { type: Type.STRING },
-                formatRequired: { type: Type.STRING }
+                formatRequired: { type: Type.STRING },
+                pageNumber: { type: Type.STRING, description: 'Page number in original TFG or "crear figura"' }
               },
-              required: ['type', 'id', 'title', 'description', 'recommendedLocation', 'formatRequired']
+              required: ['type', 'id', 'title', 'description', 'recommendedLocation', 'formatRequired', 'pageNumber']
             }
           },
           coverLetter: { type: Type.STRING },
@@ -210,10 +213,10 @@ export async function refineArticle(currentArticle: string, instructions: string
   
   CRITICAL RULES:
   1. ADAPTACIÓN ESTRICTA A LA REVISTA: Maintain strict adherence to the journal rules for "${journalRules.name}".
-  2. RIGOR CIENTÍFICO Y ESTADÍSTICO: Ensure high academic standards. Apply the Advanced Statistical Analysis System and High-Impact Improvements (Laser focus on novelty, multivariate analysis, quantitative discussion, AJOG-style tables, and Vancouver references).
-  3. AUTO-EVALUACIÓN Y CONSEJOS (CHECKLIST DE ALTO IMPACTO): Evalúa el manuscrito contra el checklist (Título/Foco, Novedad, Rigor, Estadística, Resultados, Discusión, Conclusiones, Referencias, Declaraciones, Calidad Editorial, Cover Letter, Integridad). Si faltan elementos o el TFG no los proporciona, genera consejos en "userMessages".
+  2. RIGOR CIENTÍFICO Y ESTADÍSTICO: Ensure high academic standards. Apply the Advanced Statistical Analysis System and High-Impact Improvements. Ensure the "STATISTICAL SUMMARY TABLE" is present in both Methods and the Tables section.
+  3. AUTO-EVALUACIÓN Y CONSEJOS (CHECKLIST DE ALTO IMPACTO): Evalúa el manuscrito contra el checklist. Si faltan elementos o el TFG no los proporciona, genera consejos en "userMessages".
   4. NO HTML TAGS: Do NOT use any HTML tags in any text field.
-  5. VISUAL INVENTORY: Update the visual inventory if the instructions affect tables or figures.
+  5. VISUAL INVENTORY: Update the visual inventory if the instructions affect tables or figures. Include page numbers for figures (or "crear figura").
   6. METHODS FORMAT: Use new lines for subsections (e.g., STUDY POPULATION:\n[Text]).
   7. BIBLIOGRAPHY: Extract ALL references. Use the format "1- [Reference text]" on new lines.
   
@@ -252,9 +255,10 @@ export async function refineArticle(currentArticle: string, instructions: string
                 title: { type: Type.STRING },
                 description: { type: Type.STRING },
                 recommendedLocation: { type: Type.STRING },
-                formatRequired: { type: Type.STRING }
+                formatRequired: { type: Type.STRING },
+                pageNumber: { type: Type.STRING, description: 'Page number in original TFG or "crear figura"' }
               },
-              required: ['type', 'id', 'title', 'description', 'recommendedLocation', 'formatRequired']
+              required: ['type', 'id', 'title', 'description', 'recommendedLocation', 'formatRequired', 'pageNumber']
             }
           },
           coverLetter: { type: Type.STRING },
