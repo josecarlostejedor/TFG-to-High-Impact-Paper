@@ -17,7 +17,11 @@ app.post("/api/parse-file", async (req, res) => {
       return res.status(400).json({ error: "No file data received" });
     }
 
-    console.log(`Parsing file: ${fileName} (${mimeType}) via Vercel Function`);
+    console.log(`Parsing file: ${fileName} (${mimeType}) via Vercel Function. Size: ${base64.length} chars`);
+    
+    if (base64.length > 6 * 1024 * 1024) {
+      console.warn("Payload size might exceed Vercel limits");
+    }
     
     const buffer = Buffer.from(base64, 'base64');
 
