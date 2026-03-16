@@ -53,6 +53,7 @@ export async function analyzeTFG(tfgText: string) {
   SISTEMA DE DIAGNÓSTICO ESTADÍSTICO:
   Identify the statistical tests used and evaluate their appropriateness. 
   Check if p-values are exact, if effect sizes are reported, and if assumptions (normality, etc.) are mentioned.
+  Specifically, look for the "STATISTICAL ANALYSIS" section and evaluate if it provides enough detail for a high-impact journal.
   
   Provide a "rigor diagnosis" identifying weaknesses for a high-impact journal, specifically focusing on methodology and statistics.
   
@@ -95,9 +96,19 @@ export async function generateArticle(tfgText: string, journalRules: JournalRule
   
   SISTEMA AVANZADO DE ANÁLISIS ESTADÍSTICO CON TABLA RESUMEN PROFESIONAL:
   1. EXTRACCIÓN Y CLASIFICACIÓN: Identificar TODAS las pruebas estadísticas (paramétricas/no paramétricas), variables (dependientes/independientes), estadísticos (t, F, U, χ²), gl, valores p exactos, tamaños del efecto (Cohen's d, η², V de Cramer) e IC95%. Identificar software y versión.
-  2. GENERACIÓN DE TABLA RESUMEN: Crear una tabla profesional (Objetivo | Variables | Prueba | Estadístico | IC95% | Valor p | Tamaño del efecto). Incluirla en el campo "tables" y referenciarla en "visualInventory" como "Tabla de Análisis Estadístico".
+  2. INTEGRACIÓN EN MÉTODOS: El apartado "STATISTICAL ANALYSIS" dentro de "METHODS" debe ser extenso y detallado. Al final de este apartado, DEBES incluir una tabla resumen en formato texto (usando pipes | para las columnas y filas, ej: | Col 1 | Col 2 |) con las siguientes columnas: Objetivo | Variables | Prueba | Estadístico | IC95% | Valor p | Tamaño del efecto.
   3. VERIFICACIÓN Y CÁLCULO: Validar la coherencia prueba-variable. Si faltan tamaños del efecto, CALCULARLOS (t-test -> d=2t/√gl; ANOVA -> η²=F·gl_e/(F·gl_e+gl_d); Chi-sq -> V=√(χ²/(n·min(k-1,r-1)))).
-  4. INTEGRACIÓN: Descripción narrativa profunda en Métodos y reporte riguroso en Resultados con estadísticos completos.
+  4. REPORTE EN RESULTADOS: Reporte riguroso en Resultados con estadísticos completos.
+  
+  MEJORAS CRÍTICAS PARA ALTO IMPACTO (Nivel AJOG):
+  1. FOCO Y NOVEDAD: Identificar el hallazgo más importante y hacerlo el eje del artículo (título específico, no genérico). Incluir declaración de novedad explícita ("To our knowledge...") e hipótesis comprobable.
+  2. ANÁLISIS MULTIVARIANTE: Si hay múltiples variables, aplicar regresión multivariante ajustando por confusores (edad, IMC, etc.). Reportar Adjusted OR/Coefficients con IC95%.
+  3. JUSTIFICACIÓN MUESTRAL: Si n es pequeño, incluir advertencia explícita y sugerir cálculo de poder post-hoc.
+  4. DISCUSIÓN PROFUNDA: Comparación CUANTITATIVA con literatura (usar números de otros estudios), explicaciones MECANÍSTICAS para los hallazgos e implicaciones clínicas CONCRETAS.
+  5. PRESENTACIÓN PROFESIONAL: Tablas estilo AJOG (comparaciones entre grupos, valores p). Descripciones de figuras EXHAUSTIVAS (ejes, símbolos, estadísticas).
+  6. REFERENCIAS VANCOUVER: Formato estricto (Autores. Título. Revista. Año;Vol(Num):Pág. DOI).
+  7. LIMITACIONES HONESTAS: Sección completa que aborde sesgos, tamaño muestral y generalizabilidad.
+  8. AUTO-EVALUACIÓN: El artículo debe cumplir con el checklist de calidad de alto impacto.
   
   ${journalRules.modelArticleText ? `
   ADVANCED ANALYSIS BASED ON MODEL ARTICLE:
@@ -178,7 +189,7 @@ export async function refineArticle(currentArticle: string, instructions: string
   
   CRITICAL RULES:
   1. ADAPTACIÓN ESTRICTA A LA REVISTA: Maintain strict adherence to the journal rules for "${journalRules.name}".
-  2. RIGOR CIENTÍFICO Y ESTADÍSTICO: Ensure high academic standards. Apply the Advanced Statistical Analysis System (extract tests, calculate effect sizes if missing, generate summary tables, and ensure exact p-values).
+  2. RIGOR CIENTÍFICO Y ESTADÍSTICO: Ensure high academic standards. Apply the Advanced Statistical Analysis System and High-Impact Improvements (Laser focus on novelty, multivariate analysis, quantitative discussion, AJOG-style tables, and Vancouver references).
   3. NO HTML TAGS: Do NOT use any HTML tags in any text field.
   4. VISUAL INVENTORY: Update the visual inventory if the instructions affect tables or figures.
   5. METHODS FORMAT: Use new lines for subsections (e.g., STUDY POPULATION:\n[Text]).
