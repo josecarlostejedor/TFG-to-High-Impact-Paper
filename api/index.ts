@@ -19,11 +19,18 @@ app.post("/api/parse-file", async (req, res) => {
 
     console.log(`Parsing file: ${fileName} (${mimeType}) via Vercel Function. Size: ${base64.length} chars`);
     
-    if (base64.length > 6 * 1024 * 1024) {
-      console.warn("Payload size might exceed Vercel limits");
+    if (base64.length > 4.4 * 1024 * 1024) {
+      return res.status(413).json({ 
+        error: "El archivo es demasiado grande para el procesamiento en la nube (límite de 4.5MB excedido en Base64). Por favor, intenta copiar y pegar el texto directamente." 
+      });
     }
     
-    const buffer = Buffer.from(base64, 'base64');
+    let buffer;
+    try {
+      buffer = Buffer.from(base64, 'base64');
+    } catch (e) {
+      return res.status(400).json({ error: "Datos de archivo corruptos (Base64 inválido)" });
+    }
 
     let text = "";
     if (mimeType === "application/pdf" || (fileName && fileName.toLowerCase().endsWith('.pdf'))) {
@@ -52,7 +59,9 @@ app.post("/api/parse-file", async (req, res) => {
     return res.json({ text });
   } catch (error: any) {
     console.error("Global Error parsing file:", error);
-    return res.status(500).json({ error: `Error interno del servidor: ${error.message}` });
+    return res.status(500).json({ 
+      error: `Error del servidor al procesar el archivo: ${error.message}. Esto suele ocurrir con archivos muy complejos. Te recomendamos usar el pegado manual.` 
+    });
   }
 });
 
