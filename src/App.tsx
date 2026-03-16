@@ -20,20 +20,8 @@ import { motion, AnimatePresence } from "motion/react";
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
 import { analyzeTFG, generateArticle, refineArticle, type TransformationResult, type JournalRules } from "./lib/gemini";
-import * as pdfjs from "pdfjs-dist";
-// @ts-ignore
-import pdfWorker from "pdfjs-dist/build/pdf.worker.mjs?url";
-import mammoth from "mammoth";
 import { Document, Packer, Paragraph, TextRun, HeadingLevel, AlignmentType, Footer, PageNumber } from "docx";
 import { saveAs } from "file-saver";
-
-// Set up PDF.js worker using local worker bundled by Vite
-pdfjs.GlobalWorkerOptions.workerSrc = pdfWorker;
-
-// Polyfill for older mobile browsers
-if (typeof Symbol !== 'undefined' && !Symbol.iterator) {
-  (Symbol as any).iterator = Symbol('iterator');
-}
 
 function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -102,40 +90,25 @@ export default function App() {
     setError(null);
     
     try {
-      let extractedText = "";
-
-      if (file.type === "application/pdf") {
-        const arrayBuffer = await readFileAsArrayBuffer(file);
-        const loadingTask = pdfjs.getDocument({ data: new Uint8Array(arrayBuffer) });
-        const pdf = await loadingTask.promise;
-        let fullText = "";
-        
-        for (let i = 1; i <= pdf.numPages; i++) {
-          const page = await pdf.getPage(i);
-          const textContent = await page.getTextContent();
-          const items = textContent.items || [];
-          for (let j = 0; j < items.length; j++) {
-            const item = items[j] as any;
-            fullText += (item.str || "") + " ";
-          }
-          fullText += "\n";
-        }
-        extractedText = fullText;
-      } 
-      else if (file.type === "application/vnd.openxmlformats-officedocument.wordprocessingml.document") {
-        const arrayBuffer = await readFileAsArrayBuffer(file);
-        const result = await mammoth.extractRawText({ arrayBuffer });
-        extractedText = result.value;
-      } 
-      else {
-        extractedText = await readFileAsText(file);
+      const formData = new FormData();
+      formData.append("file", file);
+      
+      const response = await fetch("/api/parse-file", {
+        method: "POST",
+        body: formData,
+      });
+      
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || "Failed to parse file on server");
       }
       
-      if (!extractedText || extractedText.trim().length === 0) {
-        throw new Error("No text could be extracted from this file. It might be empty or contain only images.");
+      const data = await response.json();
+      if (!data.text || data.text.trim().length === 0) {
+        throw new Error("No text could be extracted from this file.");
       }
 
-      setTfgText(extractedText);
+      setTfgText(data.text);
     } catch (err: any) {
       console.error("Error reading file:", err);
       setError(`Error reading file: ${err.message || "Unknown error"}`);
@@ -155,40 +128,25 @@ export default function App() {
     setError(null);
     
     try {
-      let extractedText = "";
-
-      if (file.type === "application/pdf") {
-        const arrayBuffer = await readFileAsArrayBuffer(file);
-        const loadingTask = pdfjs.getDocument({ data: new Uint8Array(arrayBuffer) });
-        const pdf = await loadingTask.promise;
-        let fullText = "";
-        
-        for (let i = 1; i <= pdf.numPages; i++) {
-          const page = await pdf.getPage(i);
-          const textContent = await page.getTextContent();
-          const items = textContent.items || [];
-          for (let j = 0; j < items.length; j++) {
-            const item = items[j] as any;
-            fullText += (item.str || "") + " ";
-          }
-          fullText += "\n";
-        }
-        extractedText = fullText;
-      } 
-      else if (file.type === "application/vnd.openxmlformats-officedocument.wordprocessingml.document") {
-        const arrayBuffer = await readFileAsArrayBuffer(file);
-        const result = await mammoth.extractRawText({ arrayBuffer });
-        extractedText = result.value;
-      } 
-      else {
-        extractedText = await readFileAsText(file);
+      const formData = new FormData();
+      formData.append("file", file);
+      
+      const response = await fetch("/api/parse-file", {
+        method: "POST",
+        body: formData,
+      });
+      
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || "Failed to parse rules on server");
       }
-
-      if (!extractedText || extractedText.trim().length === 0) {
+      
+      const data = await response.json();
+      if (!data.text || data.text.trim().length === 0) {
         throw new Error("No text could be extracted from the rules file.");
       }
 
-      setJournalRulesText(extractedText);
+      setJournalRulesText(data.text);
     } catch (err: any) {
       console.error("Error reading rules:", err);
       setError(`Error reading rules: ${err.message || "Unknown error"}`);
@@ -208,40 +166,25 @@ export default function App() {
     setError(null);
     
     try {
-      let extractedText = "";
-
-      if (file.type === "application/pdf") {
-        const arrayBuffer = await readFileAsArrayBuffer(file);
-        const loadingTask = pdfjs.getDocument({ data: new Uint8Array(arrayBuffer) });
-        const pdf = await loadingTask.promise;
-        let fullText = "";
-        
-        for (let i = 1; i <= pdf.numPages; i++) {
-          const page = await pdf.getPage(i);
-          const textContent = await page.getTextContent();
-          const items = textContent.items || [];
-          for (let j = 0; j < items.length; j++) {
-            const item = items[j] as any;
-            fullText += (item.str || "") + " ";
-          }
-          fullText += "\n";
-        }
-        extractedText = fullText;
-      } 
-      else if (file.type === "application/vnd.openxmlformats-officedocument.wordprocessingml.document") {
-        const arrayBuffer = await readFileAsArrayBuffer(file);
-        const result = await mammoth.extractRawText({ arrayBuffer });
-        extractedText = result.value;
-      } 
-      else {
-        extractedText = await readFileAsText(file);
+      const formData = new FormData();
+      formData.append("file", file);
+      
+      const response = await fetch("/api/parse-file", {
+        method: "POST",
+        body: formData,
+      });
+      
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || "Failed to parse model article on server");
       }
-
-      if (!extractedText || extractedText.trim().length === 0) {
+      
+      const data = await response.json();
+      if (!data.text || data.text.trim().length === 0) {
         throw new Error("No text could be extracted from the model article file.");
       }
 
-      setModelArticleText(extractedText);
+      setModelArticleText(data.text);
     } catch (err: any) {
       console.error("Error reading model article:", err);
       setError(`Error reading model article: ${err.message || "Unknown error"}`);
