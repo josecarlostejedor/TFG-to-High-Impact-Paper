@@ -51,7 +51,7 @@ async function startServer() {
   const app = express();
   const PORT = 3000;
 
-  app.use(express.json());
+  app.use(express.json({ limit: "10mb" }));
 
   // Safari compatibility headers
   app.use((req, res, next) => {
@@ -66,31 +66,22 @@ async function startServer() {
     res.json({ status: "ok", time: new Date().toISOString() });
   });
 
-  // API to parse files
-  app.post("/api/parse-file", (req, res, next) => {
-    upload.single("file")(req, res, (err) => {
-      if (err) {
-        console.error("Multer error:", err);
-        return res.status(400).json({ 
-          error: err.code === 'LIMIT_FILE_SIZE' ? "File too large (max 4MB for Vercel compatibility)" : err.message 
-        });
-      }
-      next();
-    });
-  }, async (req, res) => {
+  // API to parse files (Base64 JSON version)
+  app.post("/api/parse-file", async (req, res) => {
     try {
-      if (!req.file) {
-        return res.status(400).json({ error: "No file uploaded" });
+      const { base64, mimeType, fileName } = req.body;
+
+      if (!base64) {
+        return res.status(400).json({ error: "No file data received" });
       }
 
-      const buffer = req.file.buffer;
-      const mimeType = req.file.mimetype;
-      const fileName = req.file.originalname;
-
-      console.log(`Parsing file: ${fileName} (${mimeType}), size: ${buffer.length} bytes`);
+      console.log(`Parsing file: ${fileName} (${mimeType}) via Base64`);
+      
+      // Convert Base64 to Buffer
+      const buffer = Buffer.from(base64, 'base64');
 
       let text = "";
-      if (mimeType === "application/pdf") {
+      if (mimeType === "application/pdf" || fileName.toLowerCase().endsWith('.pdf')) {
         try {
           text = await extractTextFromPDF(buffer);
           if (!text || text.trim().length === 0) {
@@ -100,7 +91,7 @@ async function startServer() {
           console.error("PDF Parse Error:", pdfError);
           return res.status(422).json({ error: `Could not extract text from PDF: ${pdfError.message}` });
         }
-      } else if (mimeType === "application/vnd.openxmlformats-officedocument.wordprocessingml.document") {
+      } else if (mimeType === "application/vnd.openxmlformats-officedocument.wordprocessingml.document" || fileName.toLowerCase().endsWith('.docx')) {
         const result = await mammoth.extractRawText({ buffer: buffer });
         text = result.value;
       } else {
