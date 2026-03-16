@@ -42,6 +42,7 @@ export interface TransformationResult {
   }[];
   coverLetter: string;
   checklist: string[];
+  userMessages: string[]; // Advice for the user based on missing checklist items
   diagnosis: string;
 }
 
@@ -108,7 +109,26 @@ export async function generateArticle(tfgText: string, journalRules: JournalRule
   5. PRESENTACIÓN PROFESIONAL: Tablas estilo AJOG (comparaciones entre grupos, valores p). Descripciones de figuras EXHAUSTIVAS (ejes, símbolos, estadísticas).
   6. REFERENCIAS VANCOUVER: Formato estricto (Autores. Título. Revista. Año;Vol(Num):Pág. DOI).
   7. LIMITACIONES HONESTAS: Sección completa que aborde sesgos, tamaño muestral y generalizabilidad.
-  8. AUTO-EVALUACIÓN: El artículo debe cumplir con el checklist de calidad de alto impacto.
+  8. AUTO-EVALUACIÓN Y CONSEJOS (CHECKLIST DE ALTO IMPACTO):
+     Evalúa el manuscrito contra este checklist. Si algún punto NO se cumple o falta información en el TFG, genera un consejo en "userMessages".
+     
+     NIVEL 1: CRÍTICO
+     - Título y Foco: ¿Es específico y refleja el hallazgo principal?
+     - Novedad: ¿Declara explícitamente el aporte original?
+     - Rigor Metodológico: ¿Diseño adecuado para la pregunta?
+     - Estadística: ¿Reporta p exactos, IC95% y Tamaño del Efecto? ¿Análisis multivariante?
+     - Resultados: ¿Presentación profesional y clara?
+     
+     NIVEL 2: CALIDAD CIENTÍFICA
+     - Discusión: ¿Comparación cuantitativa con literatura? ¿Mecanismos explicativos?
+     - Conclusiones: ¿Basadas estrictamente en los resultados? ¿Sin sobre-extrapolación?
+     - Referencias: ¿Formato Vancouver estricto? ¿Actualizadas?
+     
+     NIVEL 3: INTEGRIDAD Y FORMATO
+     - Declaraciones: ¿Incluye Ética, Conflictos, Financiación y CRediT?
+     - Calidad Editorial: ¿Lenguaje profesional y sin errores?
+     - Cover Letter: ¿Argumenta por qué el estudio es apto para la revista?
+     - Integridad: ¿Sin plagio ni datos inconsistentes?
   
   ${journalRules.modelArticleText ? `
   ADVANCED ANALYSIS BASED ON MODEL ARTICLE:
@@ -173,9 +193,10 @@ export async function generateArticle(tfgText: string, journalRules: JournalRule
           },
           coverLetter: { type: Type.STRING },
           checklist: { type: Type.ARRAY, items: { type: Type.STRING } },
+          userMessages: { type: Type.ARRAY, items: { type: Type.STRING } },
           diagnosis: { type: Type.STRING },
         },
-        required: ["title", "titleProposals", "authorMetadata", "abstract", "keywords", "atAGlance", "introduction", "methods", "results", "discussion", "conclusions", "references", "visualInventory", "coverLetter", "checklist", "diagnosis"],
+        required: ["title", "titleProposals", "authorMetadata", "abstract", "keywords", "atAGlance", "introduction", "methods", "results", "discussion", "conclusions", "references", "visualInventory", "coverLetter", "checklist", "userMessages", "diagnosis"],
       },
     },
   });
@@ -190,10 +211,11 @@ export async function refineArticle(currentArticle: string, instructions: string
   CRITICAL RULES:
   1. ADAPTACIÓN ESTRICTA A LA REVISTA: Maintain strict adherence to the journal rules for "${journalRules.name}".
   2. RIGOR CIENTÍFICO Y ESTADÍSTICO: Ensure high academic standards. Apply the Advanced Statistical Analysis System and High-Impact Improvements (Laser focus on novelty, multivariate analysis, quantitative discussion, AJOG-style tables, and Vancouver references).
-  3. NO HTML TAGS: Do NOT use any HTML tags in any text field.
-  4. VISUAL INVENTORY: Update the visual inventory if the instructions affect tables or figures.
-  5. METHODS FORMAT: Use new lines for subsections (e.g., STUDY POPULATION:\n[Text]).
-  6. BIBLIOGRAPHY: Extract ALL references. Use the format "1- [Reference text]" on new lines.
+  3. AUTO-EVALUACIÓN Y CONSEJOS (CHECKLIST DE ALTO IMPACTO): Evalúa el manuscrito contra el checklist (Título/Foco, Novedad, Rigor, Estadística, Resultados, Discusión, Conclusiones, Referencias, Declaraciones, Calidad Editorial, Cover Letter, Integridad). Si faltan elementos o el TFG no los proporciona, genera consejos en "userMessages".
+  4. NO HTML TAGS: Do NOT use any HTML tags in any text field.
+  5. VISUAL INVENTORY: Update the visual inventory if the instructions affect tables or figures.
+  6. METHODS FORMAT: Use new lines for subsections (e.g., STUDY POPULATION:\n[Text]).
+  7. BIBLIOGRAPHY: Extract ALL references. Use the format "1- [Reference text]" on new lines.
   
   Current Article: ${currentArticle.substring(0, 20000)}...`;
 
@@ -237,9 +259,10 @@ export async function refineArticle(currentArticle: string, instructions: string
           },
           coverLetter: { type: Type.STRING },
           checklist: { type: Type.ARRAY, items: { type: Type.STRING } },
+          userMessages: { type: Type.ARRAY, items: { type: Type.STRING } },
           diagnosis: { type: Type.STRING },
         },
-        required: ["title", "titleProposals", "authorMetadata", "abstract", "keywords", "atAGlance", "introduction", "methods", "results", "discussion", "conclusions", "references", "visualInventory", "coverLetter", "checklist", "diagnosis"],
+        required: ["title", "titleProposals", "authorMetadata", "abstract", "keywords", "atAGlance", "introduction", "methods", "results", "discussion", "conclusions", "references", "visualInventory", "coverLetter", "checklist", "userMessages", "diagnosis"],
       },
     },
   });
