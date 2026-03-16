@@ -83,6 +83,15 @@ export default function App() {
     });
   };
 
+  const readFileAsDataURL = (file: File): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(reader.result as string);
+      reader.onerror = () => reject(new Error("Failed to read file as DataURL"));
+      reader.readAsDataURL(file);
+    });
+  };
+
   const readFileAsText = (file: File): Promise<string> => {
     return new Promise((resolve, reject) => {
       const reader = new FileReader();
@@ -108,26 +117,8 @@ export default function App() {
   };
 
   // ============================================
-  // SOLUCIÓN DEFINITIVA PARA SAFARI iOS
+  // FILE PROCESSING
   // ============================================
-
-  const arrayBufferToBase64Safe = (buffer: ArrayBuffer): string => {
-    const bytes = new Uint8Array(buffer);
-    let binary = '';
-    const len = bytes.byteLength;
-    
-    // Procesar en chunks PEQUEÑOS (1KB) - SEGURO para Safari
-    const CHUNK = 1024; 
-    for (let i = 0; i < len; i += CHUNK) {
-      const chunk = bytes.subarray(i, Math.min(i + CHUNK, len));
-      // Usar loop en lugar de .apply() para evitar límites de argumentos en Safari
-      for (let j = 0; j < chunk.length; j++) {
-        binary += String.fromCharCode(chunk[j]);
-      }
-    }
-    
-    return window.btoa(binary);
-  };
 
   const processFileLocally = async (file: File, setText: (text: string) => void, setFileName: (name: string) => void) => {
     setIsParsing(true);
@@ -164,8 +155,8 @@ export default function App() {
           return;
         } else {
           // En Desktop/Android, usar el backend con conversión segura
-          const buffer = await file.arrayBuffer();
-          const base64 = arrayBufferToBase64Safe(buffer);
+          const dataUrl = await readFileAsDataURL(file);
+          const base64 = dataUrl.split(',')[1];
           
           const response = await fetch(`${window.location.origin}/api/parse-file`, {
             method: "POST",
@@ -178,8 +169,20 @@ export default function App() {
           });
           
           if (!response.ok) {
-            const errorData = await response.json();
-            throw new Error(errorData.error || `Error del servidor: ${response.status}`);
+            let errorMessage = `Error del servidor: ${response.status}`;
+            try {
+              const errorData = await response.json();
+              errorMessage = errorData.error || errorMessage;
+            } catch (e) {
+              // Si no es JSON, intentar leer como texto
+              const textError = await response.text();
+              if (textError.includes("Payload Too Large")) {
+                errorMessage = "El archivo es demasiado grande para procesarlo. Intenta con uno más pequeño o pega el texto manualmente.";
+              } else {
+                console.error("Non-JSON error response:", textError);
+              }
+            }
+            throw new Error(errorMessage);
           }
           
           const data = await response.json();
