@@ -2,75 +2,8 @@ import express from "express";
 import { createServer as createViteServer } from "vite";
 import path from "path";
 import multer from "multer";
-import mammoth from "mammoth";
 import fs from "fs";
-
-import { createRequire } from "module";
-const require = createRequire(import.meta.url);
-import * as pdfjs from "pdfjs-dist";
-
-async function extractTextWithPdfJs(buffer: Buffer): Promise<string> {
-  console.log("Attempting extraction with pdfjs-dist...");
-  const uint8Array = new Uint8Array(buffer);
-  
-  // Fix for "baseUrl" parameter must be specified warning
-  const standardFontDataUrl = path.join(process.cwd(), "node_modules", "pdfjs-dist", "standard_fonts") + path.sep;
-  const cMapUrl = path.join(process.cwd(), "node_modules", "pdfjs-dist", "cmaps") + path.sep;
-  
-  const loadingTask = pdfjs.getDocument({ 
-    data: uint8Array,
-    standardFontDataUrl: standardFontDataUrl,
-    cMapUrl: cMapUrl,
-    cMapPacked: true,
-    useSystemFonts: true,
-  });
-  
-  const pdfDocument = await loadingTask.promise;
-  let fullText = "";
-  
-  for (let i = 1; i <= pdfDocument.numPages; i++) {
-    const page = await pdfDocument.getPage(i);
-    const textContent = await page.getTextContent();
-    const pageText = textContent.items
-      .map((item: any) => item.str)
-      .join(" ");
-    fullText += pageText + "\n";
-  }
-  
-  return fullText;
-}
-
-let pdfParser: any = null;
-
-async function extractTextFromPDF(buffer: Buffer): Promise<string> {
-  // Try pdf-parse first
-  try {
-    if (!pdfParser) {
-      try {
-        // Use require for CJS compatibility
-        const r = require("pdf-parse");
-        pdfParser = r.default || r;
-      } catch (e) {
-        console.error("Could not load pdf-parse via require:", e);
-      }
-    }
-
-    if (typeof pdfParser === "function") {
-      const data = await pdfParser(buffer);
-      if (data && data.text) return data.text;
-    }
-  } catch (e) {
-    console.error("pdf-parse failed, falling back to pdfjs-dist:", e);
-  }
-
-  // Fallback to pdfjs-dist
-  try {
-    return await extractTextWithPdfJs(buffer);
-  } catch (error: any) {
-    console.error("All PDF extraction methods failed:", error);
-    throw new Error(`Could not extract text from PDF: ${error.message}`);
-  }
-}
+import { extractTextFromPDF, extractTextFromDocx } from "./src/lib/parser.js";
 
 // Increase limit to 4MB to be safe with Vercel's 4.5MB payload limit
 const upload = multer({ 
@@ -107,7 +40,11 @@ async function startServer() {
         return res.status(400).json({ error: "No file data received" });
       }
 
-      console.log(`Parsing file: ${fileName} (${mimeType}) via Base64`);
+      console.log(`Parsing file: ${fileName} (${mimeType}) via Base64. Size: ${base64.length} chars`);
+      
+      if (base64.length > 6 * 1024 * 1024) {
+        console.warn("Payload size is large");
+      }
       
       // Convert Base64 to Buffer
       const buffer = Buffer.from(base64, 'base64');
@@ -124,8 +61,7 @@ async function startServer() {
           return res.status(422).json({ error: `Could not extract text from PDF: ${pdfError.message}` });
         }
       } else if (mimeType === "application/vnd.openxmlformats-officedocument.wordprocessingml.document" || fileName.toLowerCase().endsWith('.docx')) {
-        const result = await mammoth.extractRawText({ buffer: buffer });
-        text = result.value;
+        text = await extractTextFromDocx(buffer);
       } else {
         text = buffer.toString("utf-8");
       }
