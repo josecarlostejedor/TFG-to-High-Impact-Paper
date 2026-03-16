@@ -477,6 +477,14 @@ ${result.tables ? `TABLES:
 ${result.tables}
 ` : ""}
 
+VISUAL INVENTORY:
+${result.visualInventory.map(item => `- ${item.id}: ${item.title}
+  Type: ${item.type}
+  Location: ${item.recommendedLocation}
+  Format: ${item.formatRequired}
+  ${item.pageNumber ? `Page Number: ${item.pageNumber}` : ""}
+`).join('\n')}
+
 COVER LETTER:
 ${result.coverLetter}
 ${result.userMessages && result.userMessages.length > 0 ? `
@@ -787,6 +795,7 @@ ${result.userMessages.map((m, i) => `${i + 1}- ${m}`).join('\n')}
                   new TextRun({ text: `[ ] ${item.id}: ${item.title}`, bold: true, font: "Times New Roman", size: 24 }),
                   new TextRun({ text: `\nLocation: ${item.recommendedLocation}`, font: "Courier New", size: 18 }),
                   new TextRun({ text: `\nFormat: ${item.formatRequired}`, font: "Courier New", size: 18 }),
+                  ...(item.pageNumber ? [new TextRun({ text: `\nPage Number: ${item.pageNumber}`, font: "Courier New", size: 18 })] : []),
                 ],
                 spacing: { after: 200 },
               }))
@@ -1310,6 +1319,17 @@ ${result.userMessages.map((m, i) => `${i + 1}- ${m}`).join('\n')}
                                     <span className="text-neutral-400 font-medium">Format:</span>
                                     <span className="text-neutral-600">{item.formatRequired}</span>
                                   </div>
+                                  {item.pageNumber && (
+                                    <div className="flex items-center gap-2 text-[10px]">
+                                      <span className="text-neutral-400 font-medium">Page Number:</span>
+                                      <span className={cn(
+                                        "font-medium",
+                                        item.pageNumber === "crear figura" ? "text-amber-600" : "text-neutral-600"
+                                      )}>
+                                        {item.pageNumber}
+                                      </span>
+                                    </div>
+                                  )}
                                 </div>
                               </div>
                             ))}
