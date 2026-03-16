@@ -53,6 +53,14 @@ async function startServer() {
 
   app.use(express.json());
 
+  // Safari compatibility headers
+  app.use((req, res, next) => {
+    res.setHeader("Cross-Origin-Embedder-Policy", "unsafe-none");
+    res.setHeader("Cross-Origin-Opener-Policy", "unsafe-none");
+    res.setHeader("X-Content-Type-Options", "nosniff");
+    next();
+  });
+
   // Health check endpoint
   app.get("/api/health", (req, res) => {
     res.json({ status: "ok", time: new Date().toISOString() });
