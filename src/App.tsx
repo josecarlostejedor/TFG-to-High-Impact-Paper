@@ -26,7 +26,7 @@ import { analyzeTFG, generateArticle, refineArticle, type TransformationResult, 
 // Configure PDF.js worker
 // Using unpkg for better version reliability
 pdfjs.GlobalWorkerOptions.workerSrc = `https://unpkg.com/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.mjs`;
-import { Document, Packer, Paragraph, TextRun, HeadingLevel, AlignmentType, Footer, PageNumber } from "docx";
+import { Document, Packer, Paragraph, TextRun, HeadingLevel, AlignmentType, Footer, PageNumber, Table, TableRow, TableCell, WidthType, BorderStyle } from "docx";
 import { saveAs } from "file-saver";
 
 function cn(...inputs: ClassValue[]) {
@@ -479,6 +479,10 @@ ${result.tables}
 
 COVER LETTER:
 ${result.coverLetter}
+${result.userMessages && result.userMessages.length > 0 ? `
+CONSEJOS PARA MEJORAR EL MANUSCRITO (CHECKLIST DE ALTO IMPACTO):
+${result.userMessages.map((m, i) => `${i + 1}- ${m}`).join('\n')}
+` : ""}
     `;
     downloadFile(content, `Manuscript_${lang}_${journalName.replace(/\s+/g, '_')}.txt`);
   };
@@ -490,7 +494,7 @@ ${result.coverLetter}
       return text.replace(/<[^>]*>?/gm, '');
     };
 
-    const createParagraphs = (text: string, isReference = false, isTableList = false) => {
+    const createParagraphs = (text: string, isReference = false, isTableList = false): (Paragraph | Table)[] => {
       if (!text) return [];
       const cleanText = stripHtml(text);
       
@@ -532,18 +536,61 @@ ${result.coverLetter}
         }
       }
 
-      return rawLines.map((line, index) => {
-        let processedLine = line.trim();
-        if (isTableList) {
-          if (!processedLine.match(/^\d+[-.]/)) {
-            processedLine = `${index + 1}- ${processedLine}`;
+      // Detect and group tables
+      const elements: (Paragraph | Table)[] = [];
+      let i = 0;
+      while (i < rawLines.length) {
+        const line = rawLines[i].trim();
+        
+        // Table detection (starts with |)
+        if (line.startsWith('|') && line.endsWith('|')) {
+          const tableLines: string[] = [];
+          while (i < rawLines.length && rawLines[i].trim().startsWith('|')) {
+            // Skip separator lines like |---|---|
+            if (!rawLines[i].trim().match(/^\|[\s\-\|]+\|$/)) {
+              tableLines.push(rawLines[i].trim());
+            }
+            i++;
+          }
+
+          if (tableLines.length > 0) {
+            const rows = tableLines.map(tLine => {
+              const cells = tLine.split('|').filter((_, idx, arr) => idx > 0 && idx < arr.length - 1);
+              return new TableRow({
+                children: cells.map(cell => new TableCell({
+                  children: [new Paragraph({
+                    children: [new TextRun({ text: cell.trim(), font: "Times New Roman", size: 20 })],
+                    alignment: AlignmentType.CENTER,
+                  })],
+                  width: { size: 100 / cells.length, type: WidthType.PERCENTAGE },
+                  borders: {
+                    top: { style: BorderStyle.SINGLE, size: 1, color: "000000" },
+                    bottom: { style: BorderStyle.SINGLE, size: 1, color: "000000" },
+                    left: { style: BorderStyle.SINGLE, size: 1, color: "000000" },
+                    right: { style: BorderStyle.SINGLE, size: 1, color: "000000" },
+                  }
+                }))
+              });
+            });
+
+            elements.push(new Table({
+              rows,
+              width: { size: 100, type: WidthType.PERCENTAGE },
+              margins: { top: 100, bottom: 100, left: 100, right: 100 },
+            }));
+            continue;
           }
         }
 
-        // Check for subsection header at the start (e.g., "METHODS:", "STUDY POPULATION:")
-        // This is safe because it's anchored to the start of the line
+        // Regular paragraph
+        let processedLine = line;
+        if (isTableList) {
+          if (!processedLine.match(/^\d+[-.]/)) {
+            processedLine = `${elements.length + 1}- ${processedLine}`;
+          }
+        }
+
         const headerMatch = processedLine.match(/^([A-Z]{3,}(?:\s+[A-Z]{3,})*:)\s*(.*)/);
-        
         const children: TextRun[] = [];
         let remainingText = processedLine;
 
@@ -558,9 +605,7 @@ ${result.coverLetter}
         }
 
         if (remainingText) {
-          // Split remaining text by placeholders or table/figure mentions
           const parts = remainingText.split(/(\[INSERT (?:TABLE|FIGURE) \d+\]|TABLE \d+\.?|FIGURE \d+\.?)/g);
-          
           parts.forEach(part => {
             if (!part) return;
             const isPlaceholder = /^\[INSERT (?:TABLE|FIGURE) \d+\]$/.test(part);
@@ -577,12 +622,15 @@ ${result.coverLetter}
           });
         }
 
-        return new Paragraph({
+        elements.push(new Paragraph({
           children,
           spacing: { after: (isReference || isTableList) ? 240 : 200 },
           alignment: AlignmentType.JUSTIFIED,
-        });
-      });
+        }));
+        i++;
+      }
+
+      return elements;
     };
 
     const doc = new Document({
@@ -1148,10 +1196,23 @@ ${result.coverLetter}
                         <FileCheck size={14} />
                         Checklist
                       </button>
+                      {result.userMessages && result.userMessages.length > 0 && (
+                        <button
+                          onClick={() => setActiveTab('userMessages' as any)}
+                          className={cn(
+                            "px-4 py-2 rounded-lg text-sm font-medium transition-all capitalize flex items-center gap-1.5 relative",
+                            activeTab === 'userMessages' ? "bg-amber-600 text-white" : "text-amber-600 hover:bg-amber-50 bg-amber-50/50"
+                          )}
+                        >
+                          <AlertCircle size={14} />
+                          Mensajes al Usuario
+                          <span className="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full border-2 border-white animate-pulse" />
+                        </button>
+                      )}
                     </div>
 
                     {/* Word Count Display */}
-                    {activeTab !== 'checklist' && activeTab !== 'tables' && typeof result[activeTab] === 'string' && (
+                    {activeTab !== 'checklist' && activeTab !== 'userMessages' && activeTab !== 'tables' && typeof result[activeTab] === 'string' && (
                       <div className="flex items-center justify-between py-2 border-b border-neutral-100 mb-6">
                         <span className="text-[10px] font-bold text-neutral-400 uppercase tracking-widest">
                           Section Word Count
@@ -1178,6 +1239,26 @@ ${result.coverLetter}
                                 <CheckCircle2 size={14} />
                               </div>
                               <span className="text-sm font-medium text-neutral-700">{item}</span>
+                            </div>
+                          ))}
+                        </div>
+                      ) : activeTab === 'userMessages' ? (
+                        <div className="space-y-4">
+                          <div className="p-6 bg-amber-50 border border-amber-100 rounded-2xl mb-6">
+                            <h3 className="text-amber-800 font-bold flex items-center gap-2 mb-2">
+                              <AlertCircle size={18} />
+                              Consejos para mejorar tu manuscrito
+                            </h3>
+                            <p className="text-sm text-amber-700 leading-relaxed">
+                              Basado en el checklist de revistas de alto impacto, he identificado algunos aspectos que podrían fortalecerse. Estos puntos no pudieron ser completados o mejorados totalmente debido a falta de información en el TFG original:
+                            </p>
+                          </div>
+                          {result.userMessages?.map((message, i) => (
+                            <div key={i} className="flex items-start gap-3 p-4 bg-white border border-amber-100 rounded-xl shadow-sm">
+                              <div className="mt-1 w-5 h-5 rounded-full bg-amber-100 flex items-center justify-center text-amber-600 shrink-0">
+                                <ChevronRight size={14} />
+                              </div>
+                              <span className="text-sm text-neutral-700 leading-relaxed">{message}</span>
                             </div>
                           ))}
                         </div>
