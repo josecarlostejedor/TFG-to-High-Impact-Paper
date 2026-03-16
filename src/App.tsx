@@ -30,6 +30,11 @@ import { saveAs } from "file-saver";
 // Set up PDF.js worker using local worker bundled by Vite
 pdfjs.GlobalWorkerOptions.workerSrc = pdfWorker;
 
+// Polyfill for older mobile browsers
+if (typeof Symbol !== 'undefined' && !Symbol.iterator) {
+  (Symbol as any).iterator = Symbol('iterator');
+}
+
 function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
@@ -108,10 +113,12 @@ export default function App() {
         for (let i = 1; i <= pdf.numPages; i++) {
           const page = await pdf.getPage(i);
           const textContent = await page.getTextContent();
-          const pageText = (textContent.items || [])
-            .map((item: any) => (item as any).str || "")
-            .join(" ");
-          fullText += pageText + "\n";
+          const items = textContent.items || [];
+          for (let j = 0; j < items.length; j++) {
+            const item = items[j] as any;
+            fullText += (item.str || "") + " ";
+          }
+          fullText += "\n";
         }
         extractedText = fullText;
       } 
@@ -131,7 +138,7 @@ export default function App() {
       setTfgText(extractedText);
     } catch (err: any) {
       console.error("Error reading file:", err);
-      setError(`Error reading file: ${err.message}`);
+      setError(`Error reading file: ${err.message || "Unknown error"}`);
       setTfgFileName(""); 
     } finally {
       setIsParsing(false);
@@ -159,10 +166,12 @@ export default function App() {
         for (let i = 1; i <= pdf.numPages; i++) {
           const page = await pdf.getPage(i);
           const textContent = await page.getTextContent();
-          const pageText = (textContent.items || [])
-            .map((item: any) => (item as any).str || "")
-            .join(" ");
-          fullText += pageText + "\n";
+          const items = textContent.items || [];
+          for (let j = 0; j < items.length; j++) {
+            const item = items[j] as any;
+            fullText += (item.str || "") + " ";
+          }
+          fullText += "\n";
         }
         extractedText = fullText;
       } 
@@ -182,7 +191,7 @@ export default function App() {
       setJournalRulesText(extractedText);
     } catch (err: any) {
       console.error("Error reading rules:", err);
-      setError(`Error reading rules: ${err.message}`);
+      setError(`Error reading rules: ${err.message || "Unknown error"}`);
       setRulesFileName("");
     } finally {
       setIsParsing(false);
@@ -210,10 +219,12 @@ export default function App() {
         for (let i = 1; i <= pdf.numPages; i++) {
           const page = await pdf.getPage(i);
           const textContent = await page.getTextContent();
-          const pageText = (textContent.items || [])
-            .map((item: any) => (item as any).str || "")
-            .join(" ");
-          fullText += pageText + "\n";
+          const items = textContent.items || [];
+          for (let j = 0; j < items.length; j++) {
+            const item = items[j] as any;
+            fullText += (item.str || "") + " ";
+          }
+          fullText += "\n";
         }
         extractedText = fullText;
       } 
@@ -233,7 +244,7 @@ export default function App() {
       setModelArticleText(extractedText);
     } catch (err: any) {
       console.error("Error reading model article:", err);
-      setError(`Error reading model article: ${err.message}`);
+      setError(`Error reading model article: ${err.message || "Unknown error"}`);
       setModelArticleFileName("");
     } finally {
       setIsParsing(false);
