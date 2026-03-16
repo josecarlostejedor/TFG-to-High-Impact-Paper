@@ -5,6 +5,30 @@ const app = express();
 app.use(express.json({ limit: "50mb" }));
 app.use(express.urlencoded({ limit: "50mb", extended: true }));
 
+// Polyfill for DOMMatrix which is missing in Node.js but required by pdfjs-dist 4.x
+if (typeof globalThis.DOMMatrix === "undefined") {
+  (globalThis as any).DOMMatrix = class DOMMatrix {
+    constructor() {}
+    static fromFloat32Array() { return new DOMMatrix(); }
+    static fromFloat64Array() { return new DOMMatrix(); }
+    multiply() { return new DOMMatrix(); }
+    translate() { return new DOMMatrix(); }
+    scale() { return new DOMMatrix(); }
+    rotate() { return new DOMMatrix(); }
+    inverse() { return new DOMMatrix(); }
+  };
+}
+
+if (typeof globalThis.DOMPoint === "undefined") {
+  (globalThis as any).DOMPoint = class DOMPoint {
+    x: number; y: number; z: number; w: number;
+    constructor(x = 0, y = 0, z = 0, w = 1) {
+      this.x = x; this.y = y; this.z = z; this.w = w;
+    }
+    static fromPoint(p: any) { return new DOMPoint(p.x, p.y, p.z, p.w); }
+  };
+}
+
 app.get("/api/health", (req, res) => {
   res.json({ status: "ok", time: new Date().toISOString(), environment: "vercel" });
 });
@@ -26,14 +50,21 @@ app.post("/api/parse-file", async (req, res) => {
       try {
         text = await extractTextFromPDF(buffer);
         if (!text || text.trim().length === 0) {
-          throw new Error("PDF parece estar vacío o solo contiene imágenes.");
+          return res.status(422).json({ 
+            error: "El PDF no contiene texto extraíble. Si es un PDF escaneado, por favor usa una herramienta de OCR o pega el texto manualmente." 
+          });
         }
       } catch (pdfError: any) {
         console.error("PDF Parse Error:", pdfError);
-        return res.status(422).json({ error: `No se pudo extraer texto del PDF: ${pdfError.message}` });
+        return res.status(422).json({ error: `Error al leer el PDF: ${pdfError.message}` });
       }
     } else if (mimeType === "application/vnd.openxmlformats-officedocument.wordprocessingml.document" || (fileName && fileName.toLowerCase().endsWith('.docx'))) {
-      text = await extractTextFromDocx(buffer);
+      try {
+        text = await extractTextFromDocx(buffer);
+      } catch (docxError: any) {
+        console.error("DOCX Parse Error:", docxError);
+        return res.status(422).json({ error: `Error al leer el archivo Word: ${docxError.message}` });
+      }
     } else {
       text = buffer.toString("utf-8");
     }
@@ -41,7 +72,7 @@ app.post("/api/parse-file", async (req, res) => {
     return res.json({ text });
   } catch (error: any) {
     console.error("Global Error parsing file:", error);
-    return res.status(500).json({ error: `Error del servidor al procesar el archivo: ${error.message}` });
+    return res.status(500).json({ error: `Error interno del servidor: ${error.message}` });
   }
 });
 
