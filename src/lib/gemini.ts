@@ -49,7 +49,12 @@ export async function analyzeTFG(tfgText: string) {
   const model = "gemini-3-flash-preview";
   const prompt = `Analyze the following undergraduate thesis (TFG) and extract its core components: 
   objective, methodology, key results, and main conclusions. 
-  Also, provide a "rigor diagnosis" identifying weaknesses for a high-impact journal.
+  
+  SISTEMA DE DIAGNÓSTICO ESTADÍSTICO:
+  Identify the statistical tests used and evaluate their appropriateness. 
+  Check if p-values are exact, if effect sizes are reported, and if assumptions (normality, etc.) are mentioned.
+  
+  Provide a "rigor diagnosis" identifying weaknesses for a high-impact journal, specifically focusing on methodology and statistics.
   
   TFG Text: ${tfgText.substring(0, 30000)}...`; // Limit text for safety
 
@@ -87,6 +92,12 @@ export async function generateArticle(tfgText: string, journalRules: JournalRule
   1. IDENTIFICACIÓN: Create a detailed "visualInventory" of all tables and figures found in the TFG.
   2. UBICACIÓN: Mark their recommended location in the text with placeholders like "[INSERT TABLE X]".
   3. FORMATEO: For tables, provide a clear text-based representation (not HTML) that follows the journal's style.
+  
+  SISTEMA AVANZADO DE ANÁLISIS ESTADÍSTICO CON TABLA RESUMEN PROFESIONAL:
+  1. EXTRACCIÓN Y CLASIFICACIÓN: Identificar TODAS las pruebas estadísticas (paramétricas/no paramétricas), variables (dependientes/independientes), estadísticos (t, F, U, χ²), gl, valores p exactos, tamaños del efecto (Cohen's d, η², V de Cramer) e IC95%. Identificar software y versión.
+  2. GENERACIÓN DE TABLA RESUMEN: Crear una tabla profesional (Objetivo | Variables | Prueba | Estadístico | IC95% | Valor p | Tamaño del efecto). Incluirla en el campo "tables" y referenciarla en "visualInventory" como "Tabla de Análisis Estadístico".
+  3. VERIFICACIÓN Y CÁLCULO: Validar la coherencia prueba-variable. Si faltan tamaños del efecto, CALCULARLOS (t-test -> d=2t/√gl; ANOVA -> η²=F·gl_e/(F·gl_e+gl_d); Chi-sq -> V=√(χ²/(n·min(k-1,r-1)))).
+  4. INTEGRACIÓN: Descripción narrativa profunda en Métodos y reporte riguroso en Resultados con estadísticos completos.
   
   ${journalRules.modelArticleText ? `
   ADVANCED ANALYSIS BASED ON MODEL ARTICLE:
@@ -167,7 +178,7 @@ export async function refineArticle(currentArticle: string, instructions: string
   
   CRITICAL RULES:
   1. ADAPTACIÓN ESTRICTA A LA REVISTA: Maintain strict adherence to the journal rules for "${journalRules.name}".
-  2. RIGOR CIENTÍFICO: Ensure high academic standards.
+  2. RIGOR CIENTÍFICO Y ESTADÍSTICO: Ensure high academic standards. Apply the Advanced Statistical Analysis System (extract tests, calculate effect sizes if missing, generate summary tables, and ensure exact p-values).
   3. NO HTML TAGS: Do NOT use any HTML tags in any text field.
   4. VISUAL INVENTORY: Update the visual inventory if the instructions affect tables or figures.
   5. METHODS FORMAT: Use new lines for subsections (e.g., STUDY POPULATION:\n[Text]).
