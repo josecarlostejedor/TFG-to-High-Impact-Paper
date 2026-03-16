@@ -5,38 +5,16 @@ import multer from "multer";
 import mammoth from "mammoth";
 import fs from "fs";
 
-import * as pdfjs from "pdfjs-dist/legacy/build/pdf.mjs";
-
-// Initialize pdfjs worker
-// In Node.js environment with the legacy build, we can often skip the worker or use the bundled one
-// For text extraction, this is the most reliable way in Node:
+import { createRequire } from "module";
+const require = createRequire(import.meta.url);
+const pdf = require("pdf-parse");
 
 async function extractTextFromPDF(buffer: Buffer): Promise<string> {
   try {
-    const data = new Uint8Array(buffer);
-    const loadingTask = pdfjs.getDocument({
-      data,
-      useSystemFonts: true,
-      disableFontFace: true,
-      isEvalSupported: false, // Security/stability in some environments
-    });
-    const pdf = await loadingTask.promise;
-    let fullText = "";
-    
-    for (let i = 1; i <= pdf.numPages; i++) {
-      const page = await pdf.getPage(i);
-      const textContent = await page.getTextContent();
-      const items = textContent.items || [];
-      for (let j = 0; j < items.length; j++) {
-        const item = items[j] as any;
-        fullText += (item.str || "") + " ";
-      }
-      fullText += "\n";
-    }
-    
-    return fullText;
+    const data = await pdf(buffer);
+    return data.text || "";
   } catch (error) {
-    console.error("pdfjs-dist error:", error);
+    console.error("pdf-parse error:", error);
     throw error;
   }
 }
@@ -51,7 +29,8 @@ async function startServer() {
   const app = express();
   const PORT = 3000;
 
-  app.use(express.json({ limit: "10mb" }));
+  app.use(express.json({ limit: "50mb" }));
+  app.use(express.urlencoded({ limit: "50mb", extended: true }));
 
   // Safari compatibility headers
   app.use((req, res, next) => {
