@@ -65,6 +65,13 @@ export default function App() {
   const [refinementInstructions, setRefinementInstructions] = useState("");
   const [activeTab, setActiveTab] = useState<keyof TransformationResult>("abstract");
   const [showManualInput, setShowManualInput] = useState(false);
+  const [isIPhone, setIsIPhone] = useState(false);
+
+  React.useEffect(() => {
+    const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+    const isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
+    setIsIPhone(isIOS && isSafari);
+  }, []);
 
   // Helper functions for better mobile compatibility (Safari/iOS < 14.1)
   const readFileAsArrayBuffer = (file: File): Promise<ArrayBuffer> => {
@@ -100,137 +107,117 @@ export default function App() {
     setActiveTab("abstract");
   };
 
-  const fileToBase64 = async (file: File): Promise<string> => {
+  // ============================================
+  // SOLUCIÓN DEFINITIVA PARA SAFARI iOS
+  // ============================================
+
+  const arrayBufferToBase64Safe = (buffer: ArrayBuffer): string => {
+    const bytes = new Uint8Array(buffer);
+    let binary = '';
+    const len = bytes.byteLength;
+    
+    // Procesar en chunks PEQUEÑOS (1KB) - SEGURO para Safari
+    const CHUNK = 1024; 
+    for (let i = 0; i < len; i += CHUNK) {
+      const chunk = bytes.subarray(i, Math.min(i + CHUNK, len));
+      // Usar loop en lugar de .apply() para evitar límites de argumentos en Safari
+      for (let j = 0; j < chunk.length; j++) {
+        binary += String.fromCharCode(chunk[j]);
+      }
+    }
+    
+    return window.btoa(binary);
+  };
+
+  const processFileLocally = async (file: File, setText: (text: string) => void, setFileName: (name: string) => void) => {
+    setIsParsing(true);
+    setError(null);
+    setFileName(file.name);
+    
     try {
-      // Use arrayBuffer() instead of FileReader for better Safari compatibility
-      const buffer = await file.arrayBuffer();
-      const bytes = new Uint8Array(buffer);
-      let binary = "";
-      const len = bytes.byteLength;
+      const isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
+      const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+      const isSafariIOS = isSafari && isIOS;
       
-      // Process in chunks to avoid stack overflow and keep it fast
-      const chunkSize = 0x8000; // 32KB chunks
-      for (let i = 0; i < len; i += chunkSize) {
-        const chunk = bytes.subarray(i, Math.min(i + chunkSize, len));
-        // @ts-ignore
-        binary += String.fromCharCode.apply(null, chunk);
+      console.log(`Processing file: ${file.name} (${(file.size / 1024).toFixed(2)} KB)`);
+      
+      let text = '';
+      
+      // 1. Archivos de texto plano: Leer directamente en el frontend
+      if (file.type === 'text/plain' || file.name.endsWith('.txt')) {
+        text = await readFileAsText(file);
+      }
+      // 2. PDF y DOCX: Manejo especial para iPhone
+      else if (file.type === 'application/pdf' || file.name.endsWith('.pdf') || file.name.endsWith('.docx')) {
+        if (isSafariIOS) {
+          setError(`
+            📱 iPhone detectado. Para mejores resultados con PDFs y Word:
+            
+            1. Abre el archivo en tu móvil (Archivos, Libros, etc.)
+            2. Selecciona todo el texto y dale a "Copiar".
+            3. Pégalo usando la opción "Pegar Texto Manualmente" que verás abajo.
+            
+            Esta es una limitación de seguridad de Safari iOS, no un error de la app.
+          `);
+          setFileName('');
+          setIsParsing(false);
+          return;
+        } else {
+          // En Desktop/Android, usar el backend con conversión segura
+          const buffer = await file.arrayBuffer();
+          const base64 = arrayBufferToBase64Safe(buffer);
+          
+          const response = await fetch(`${window.location.origin}/api/parse-file`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              base64: base64,
+              mimeType: file.type || (file.name.endsWith('.pdf') ? 'application/pdf' : 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'),
+              fileName: file.name
+            }),
+          });
+          
+          if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.error || `Error del servidor: ${response.status}`);
+          }
+          
+          const data = await response.json();
+          text = data.text;
+        }
       }
       
-      return window.btoa(binary);
-    } catch (e) {
-      console.error("Base64 conversion error:", e);
-      throw new Error("Could not process the file. It might be too large or corrupted.");
+      if (text) {
+        setText(text);
+      } else if (!isSafariIOS) {
+        throw new Error("No se pudo extraer texto del archivo.");
+      }
+      
+    } catch (err: any) {
+      console.error("Error procesando archivo:", err);
+      setError(`Error: ${err.message}. Por favor, usa la entrada manual.`);
+      setFileName('');
+    } finally {
+      setIsParsing(false);
     }
   };
 
   const onDropTFG = useCallback(async (acceptedFiles: File[]) => {
     const file = acceptedFiles[0];
     if (!file) return;
-    
-    setIsParsing(true);
-    setError(null);
-    setTfgFileName(file.name);
-    
-    try {
-      const base64Data = await fileToBase64(file);
-      
-      const response = await fetch(`${window.location.origin}/api/parse-file`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          base64: base64Data,
-          mimeType: file.type || "application/pdf",
-          fileName: file.name
-        }),
-      });
-      
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || `Server error: ${response.status}`);
-      }
-      
-      const data = await response.json();
-      if (!data.text) throw new Error("The file is empty or could not be read.");
-      setTfgText(data.text);
-    } catch (err: any) {
-      console.error("Upload failed:", err);
-      setError(`Upload failed: ${err.message}`);
-      setTfgFileName(""); 
-    } finally {
-      setIsParsing(false);
-    }
+    await processFileLocally(file, setTfgText, setTfgFileName);
   }, []);
 
   const onDropRules = useCallback(async (acceptedFiles: File[]) => {
     const file = acceptedFiles[0];
     if (!file) return;
-
-    setIsParsing(true);
-    setError(null);
-    setRulesFileName(file.name);
-    
-    try {
-      const base64Data = await fileToBase64(file);
-      
-      const response = await fetch(`${window.location.origin}/api/parse-file`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          base64: base64Data,
-          mimeType: file.type || "application/pdf",
-          fileName: file.name
-        }),
-      });
-      
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || `Server error: ${response.status}`);
-      }
-      
-      const data = await response.json();
-      setJournalRulesText(data.text);
-    } catch (err: any) {
-      setError(`Upload failed: ${err.message}`);
-      setRulesFileName("");
-    } finally {
-      setIsParsing(false);
-    }
+    await processFileLocally(file, setJournalRulesText, setRulesFileName);
   }, []);
 
   const onDropModelArticle = useCallback(async (acceptedFiles: File[]) => {
     const file = acceptedFiles[0];
     if (!file) return;
-
-    setIsParsing(true);
-    setError(null);
-    setModelArticleFileName(file.name);
-    
-    try {
-      const base64Data = await fileToBase64(file);
-      
-      const response = await fetch(`${window.location.origin}/api/parse-file`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          base64: base64Data,
-          mimeType: file.type || "application/pdf",
-          fileName: file.name
-        }),
-      });
-      
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || `Server error: ${response.status}`);
-      }
-      
-      const data = await response.json();
-      setModelArticleText(data.text);
-    } catch (err: any) {
-      setError(`Upload failed: ${err.message}`);
-      setModelArticleFileName("");
-    } finally {
-      setIsParsing(false);
-    }
+    await processFileLocally(file, setModelArticleText, setModelArticleFileName);
   }, []);
 
 
@@ -765,6 +752,27 @@ ${result.coverLetter}
                 </button>
               </div>
 
+              {isIPhone && !tfgText && (
+                <div className="p-4 bg-amber-50 border border-amber-200 rounded-xl">
+                  <div className="flex items-center gap-2 text-amber-800 font-medium mb-2">
+                    <AlertCircle size={18} />
+                    iPhone detectado
+                  </div>
+                  <p className="text-xs text-amber-700 mb-3">
+                    Para la mejor experiencia en iPhone, por favor pega el texto de tu TFG directamente:
+                  </p>
+                  <textarea
+                    placeholder="Pega aquí el texto de tu TFG..."
+                    className="w-full h-32 bg-white border border-amber-200 rounded-xl p-3 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500/20"
+                    value={tfgText}
+                    onChange={(e) => {
+                      setTfgText(e.target.value);
+                      setTfgFileName("Pegado Manual");
+                    }}
+                  />
+                </div>
+              )}
+
               {showManualInput ? (
                 <div className="space-y-2">
                   <textarea
@@ -901,9 +909,17 @@ ${result.coverLetter}
                 className="p-4 bg-red-50 border border-red-100 rounded-xl text-red-700 text-sm flex items-start gap-3"
               >
                 <AlertCircle size={18} className="shrink-0 mt-0.5" />
-                <div>
-                  <p className="font-bold">Generation Error</p>
-                  <p className="opacity-90">{error}</p>
+                <div className="space-y-2">
+                  <p className="font-bold">Problema con el archivo</p>
+                  <p className="opacity-90 whitespace-pre-wrap">{error}</p>
+                  {isIPhone && (
+                    <button
+                      onClick={() => setShowManualInput(true)}
+                      className="mt-2 px-3 py-1.5 bg-red-100 hover:bg-red-200 rounded-lg text-xs font-medium transition-colors"
+                    >
+                      Cambiar a Pegado Manual
+                    </button>
+                  )}
                 </div>
               </motion.div>
             )}
