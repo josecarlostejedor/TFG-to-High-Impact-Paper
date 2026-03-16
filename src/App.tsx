@@ -53,6 +53,25 @@ export default function App() {
   const [activeTab, setActiveTab] = useState<keyof TransformationResult>("abstract");
   const [showManualInput, setShowManualInput] = useState(false);
 
+  // Helper functions for better mobile compatibility (Safari/iOS < 14.1)
+  const readFileAsArrayBuffer = (file: File): Promise<ArrayBuffer> => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(reader.result as ArrayBuffer);
+      reader.onerror = () => reject(new Error("Failed to read file as ArrayBuffer"));
+      reader.readAsArrayBuffer(file);
+    });
+  };
+
+  const readFileAsText = (file: File): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(reader.result as string);
+      reader.onerror = () => reject(new Error("Failed to read file as text"));
+      reader.readAsText(file);
+    });
+  };
+
   const handleReset = () => {
     setTfgText("");
     setJournalName("");
@@ -81,28 +100,28 @@ export default function App() {
       let extractedText = "";
 
       if (file.type === "application/pdf") {
-        const arrayBuffer = await file.arrayBuffer();
-        const loadingTask = pdfjs.getDocument({ data: arrayBuffer });
+        const arrayBuffer = await readFileAsArrayBuffer(file);
+        const loadingTask = pdfjs.getDocument({ data: new Uint8Array(arrayBuffer) });
         const pdf = await loadingTask.promise;
         let fullText = "";
         
         for (let i = 1; i <= pdf.numPages; i++) {
           const page = await pdf.getPage(i);
           const textContent = await page.getTextContent();
-          const pageText = textContent.items
-            .map((item: any) => item.str)
+          const pageText = (textContent.items || [])
+            .map((item: any) => (item as any).str || "")
             .join(" ");
           fullText += pageText + "\n";
         }
         extractedText = fullText;
       } 
       else if (file.type === "application/vnd.openxmlformats-officedocument.wordprocessingml.document") {
-        const arrayBuffer = await file.arrayBuffer();
+        const arrayBuffer = await readFileAsArrayBuffer(file);
         const result = await mammoth.extractRawText({ arrayBuffer });
         extractedText = result.value;
       } 
       else {
-        extractedText = await file.text();
+        extractedText = await readFileAsText(file);
       }
       
       if (!extractedText || extractedText.trim().length === 0) {
@@ -132,28 +151,28 @@ export default function App() {
       let extractedText = "";
 
       if (file.type === "application/pdf") {
-        const arrayBuffer = await file.arrayBuffer();
-        const loadingTask = pdfjs.getDocument({ data: arrayBuffer });
+        const arrayBuffer = await readFileAsArrayBuffer(file);
+        const loadingTask = pdfjs.getDocument({ data: new Uint8Array(arrayBuffer) });
         const pdf = await loadingTask.promise;
         let fullText = "";
         
         for (let i = 1; i <= pdf.numPages; i++) {
           const page = await pdf.getPage(i);
           const textContent = await page.getTextContent();
-          const pageText = textContent.items
-            .map((item: any) => item.str)
+          const pageText = (textContent.items || [])
+            .map((item: any) => (item as any).str || "")
             .join(" ");
           fullText += pageText + "\n";
         }
         extractedText = fullText;
       } 
       else if (file.type === "application/vnd.openxmlformats-officedocument.wordprocessingml.document") {
-        const arrayBuffer = await file.arrayBuffer();
+        const arrayBuffer = await readFileAsArrayBuffer(file);
         const result = await mammoth.extractRawText({ arrayBuffer });
         extractedText = result.value;
       } 
       else {
-        extractedText = await file.text();
+        extractedText = await readFileAsText(file);
       }
 
       if (!extractedText || extractedText.trim().length === 0) {
@@ -183,28 +202,28 @@ export default function App() {
       let extractedText = "";
 
       if (file.type === "application/pdf") {
-        const arrayBuffer = await file.arrayBuffer();
-        const loadingTask = pdfjs.getDocument({ data: arrayBuffer });
+        const arrayBuffer = await readFileAsArrayBuffer(file);
+        const loadingTask = pdfjs.getDocument({ data: new Uint8Array(arrayBuffer) });
         const pdf = await loadingTask.promise;
         let fullText = "";
         
         for (let i = 1; i <= pdf.numPages; i++) {
           const page = await pdf.getPage(i);
           const textContent = await page.getTextContent();
-          const pageText = textContent.items
-            .map((item: any) => item.str)
+          const pageText = (textContent.items || [])
+            .map((item: any) => (item as any).str || "")
             .join(" ");
           fullText += pageText + "\n";
         }
         extractedText = fullText;
       } 
       else if (file.type === "application/vnd.openxmlformats-officedocument.wordprocessingml.document") {
-        const arrayBuffer = await file.arrayBuffer();
+        const arrayBuffer = await readFileAsArrayBuffer(file);
         const result = await mammoth.extractRawText({ arrayBuffer });
         extractedText = result.value;
       } 
       else {
-        extractedText = await file.text();
+        extractedText = await readFileAsText(file);
       }
 
       if (!extractedText || extractedText.trim().length === 0) {
