@@ -134,6 +134,20 @@ const getQ1Modules = (journalName: string) => `
      - No utilizar el marco teórico para reforzar los resultados.
      - No exponer la importancia personal o juicios de valor sobre los resultados.
 
+  MÓDULO: EXTENSIÓN Y PROFUNDIDAD EDITORIAL (ESTÁNDAR ELSEVIER/Q1):
+  Para alcanzar el estándar de las mejores revistas de Elsevier, el artículo debe tener una densidad y profundidad académica superior.
+  1. OBJETIVO DE EXTENSIÓN:
+     - Abstract: 1 párrafo denso y estructurado.
+     - Introducción: 1.5 a 2 páginas (aprox. 800-1000 palabras). Debe ser un embudo perfecto de evidencia.
+     - Metodología: 2 a 4 páginas (aprox. 1000-1500 palabras). Detalle quirúrgico.
+     - Resultados y Discusión: 10 a 12 páginas (aprox. 4000-5000 palabras). Es el corazón del artículo.
+     - Conclusiones: 1 a 2 páginas (aprox. 500-800 palabras).
+  2. DENSIDAD DE EVIDENCIA:
+     - Gráficos: Apuntar a 6-8 elementos visuales de alto impacto.
+     - Tablas: Entre 1 y 3 tablas complejas y profesionales.
+     - Referencias: Entre 20 y 50 referencias de alto impacto (Scopus/WoS), priorizando los últimos 5 años.
+  3. REGLA DE ORO: No se trata de "rellenar", sino de expandir el análisis, profundizar en los mecanismos explicativos en la discusión y detallar cada paso del proceso en métodos.
+
   MÓDULO: COVER LETTER PERSUASIVA (ESTÁNDAR Q1):
   La carta de presentación (cover letter) es una herramienta estratégica para persuadir al editor sobre el alcance e importancia de la contribución. No debe ser una plantilla estándar ni repetir el resumen.
   1. TONO Y ESTILO:
@@ -301,14 +315,14 @@ export async function generateArticle(tfgText: string, journalRules: JournalRule
   ` : ""}
   
   CONTENT GUIDELINES:
-  - EXTENSION: Aim for 3000-5000 words. EXPAND the TFG, do not just summarize it.
+  - EXTENSION: Aim for 8000-10000 words total to match Elsevier's 25-30 page standard. EXPAND the TFG significantly, adding depth, context, and detailed analysis.
   - METADATA: Provide 3 title proposals. Include author normalization recommendations (IraLIS/FECYT).
-  - INTRODUCTION: Aplicar el Módulo de Introducción Estratégica. Estructura de embudo (Contexto -> Estado del Arte -> GAP -> Justificación -> Objetivos/Hipótesis).
-  - METHODS: Aplicar el Módulo de Métodos de Reproduducibilidad Total y el Módulo de Integridad y Estándares Formales. Declarar adherencia a STROBE/CONSORT según diseño.
-  - RESULTS: Aplicar el Módulo de Resultados de Alto Impacto. Narrativa fluida, sin redundancia con tablas/figuras. Referencias explícitas a [INSERT TABLE/FIGURE X]. Si faltan visuales en el TFG, crear propuestas basadas en los datos.
-  - DISCUSSION: Aplicar el Módulo de Discusión Interpretativa. Foco en interpretación, comparación y validez.
-  - CONCLUSIONS: Aplicar el Módulo de Conclusiones de Alto Impacto. Asegurar la alineación con objetivos y la inclusión de aportes/futuras líneas.
-  - BIBLIOGRAPHY: Extract ALL references from the TFG (usually 15-20+). Use the EXACT format "1- [Reference text]" and put each on a NEW LINE. CRITICAL: Each reference must be a single continuous string without internal line breaks or carriage returns. NO HTML.
+  - INTRODUCTION: Aplicar el Módulo de Introducción Estratégica. Estructura de embudo (Contexto -> Estado del Arte -> GAP -> Justificación -> Objetivos/Hipótesis). Objetivo: 800-1000 palabras.
+  - METHODS: Aplicar el Módulo de Métodos de Reproduducibilidad Total y el Módulo de Integridad y Estándares Formales. Declarar adherencia a STROBE/CONSORT según diseño. Objetivo: 1000-1500 palabras.
+  - RESULTS: Aplicar el Módulo de Resultados de Alto Impacto. Narrativa fluida, sin redundancia con tablas/figuras. Referencias explícitas a [INSERT TABLE/FIGURE X]. Si faltan visuales en el TFG, crear propuestas basadas en los datos. Objetivo: 2000-2500 palabras.
+  - DISCUSSION: Aplicar el Módulo de Discusión Interpretativa. Foco en interpretación, comparación y validez. Objetivo: 2000-2500 palabras.
+  - CONCLUSIONS: Aplicar el Módulo de Conclusiones de Alto Impacto. Asegurar la alineación con objetivos y la inclusión de aportes/futuras líneas. Objetivo: 500-800 palabras.
+  - BIBLIOGRAPHY: Extract ALL references from the TFG (usually 20-50+). Use the EXACT format "1- [Reference text]" and put each on a NEW LINE. CRITICAL: Each reference must be a single continuous string without internal line breaks or carriage returns. NO HTML.
   
   TFG Text: ${tfgText.substring(0, 28000)}...`;
 
@@ -390,13 +404,14 @@ export async function refineArticle(currentArticle: string, instructions: string
   ${getQ1Modules(journalRules.name)}
   
   CONTENT GUIDELINES:
-  - INTRODUCTION: Aplicar el Módulo de Introducción Estratégica.
-  - METHODS: Aplicar el Módulo de Métodos de Reproduducibilidad Total y el Módulo de Integridad y Estándares Formales.
-  - RESULTS: Aplicar el Módulo de Resultados de Alto Impacto.
-  - DISCUSSION: Aplicar el Módulo de Discusión Interpretativa.
-  - CONCLUSIONS: Aplicar el Módulo de Conclusiones de Alto Impacto.
+  - EXTENSION: Aim for 8000-10000 words total. EXPAND the content significantly to reach Elsevier's 25-30 page standard.
+  - INTRODUCTION: Aplicar el Módulo de Introducción Estratégica. Objetivo: 800-1000 palabras.
+  - METHODS: Aplicar el Módulo de Métodos de Reproduducibilidad Total y el Módulo de Integridad y Estándares Formales. Objetivo: 1000-1500 palabras.
+  - RESULTS: Aplicar el Módulo de Resultados de Alto Impacto. Objetivo: 2000-2500 palabras.
+  - DISCUSSION: Aplicar el Módulo de Discusión Interpretativa. Objetivo: 2000-2500 palabras.
+  - CONCLUSIONS: Aplicar el Módulo de Conclusiones de Alto Impacto. Objetivo: 500-800 palabras.
   - COVER LETTER: Aplicar el Módulo de Cover Letter Persuasiva.
-  - VISUALS: Aplicar el Módulo de Inventario Visual Inteligente.
+  - VISUALS: Aplicar el Módulo de Inventario Visual Inteligente. Aim for 6-8 graphics and 1-3 tables.
   
   Current Article: ${currentArticle.substring(0, 20000)}...`;
 
