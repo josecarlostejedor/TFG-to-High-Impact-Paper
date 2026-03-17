@@ -125,15 +125,14 @@ const getQ1Modules = (journalName: string) => `
   MÓDULO: CONCLUSIONES DE ALTO IMPACTO (ESTÁNDAR Q1):
   Las conclusiones sintetizan los resultados en función de los objetivos trazados.
   1. REGLA DE ORO (ALINEACIÓN): Las conclusiones se construyen con los resultados obtenidos, pero SIEMPRE alineados a los objetivos del estudio.
-  2. ESTRUCTURA OBLIGATORIA Y ORDEN:
-     a) Conclusión General: Debe estar alineada al cumplimiento del objetivo general, incluyendo el resultado principal.
+  2. ESTRUCTURA OBLIGATORIA Y ORDEN (a, b, c):
+     a) Conclusión General: Señalar la conclusión general alineada al cumplimiento del objetivo general, incluyendo el resultado principal.
      b) Resultados Principales: Señalar los hallazgos relacionados con los objetivos específicos.
-     c) Aportes, Beneficios y Futuro: Resaltar la utilidad de los resultados. Incluir 1-2 recomendaciones de trabajo futuro. Mencionar aquello que no se haya podido demostrar (limitaciones) para guiar a futuros investigadores.
+     c) Aportes, Beneficios y Futuro: Resaltar aportes y beneficios de los resultados (tanto generales como específicos). Incluir 1-2 recomendaciones de trabajo futuro. Mencionar limitaciones (aquello que no se haya podido demostrar) para guiar a otros investigadores.
   3. RESTRICCIONES CRÍTICAS:
      - Prohibido incorporar elementos no tratados en la investigación.
      - No utilizar el marco teórico para reforzar los resultados.
      - No exponer la importancia personal o juicios de valor sobre los resultados.
-     - Los aportes y beneficios pueden referirse tanto al resultado general como a los específicos.
 
   MÓDULO: COVER LETTER PERSUASIVA (ESTÁNDAR Q1):
   La carta de presentación (cover letter) es una herramienta estratégica para persuadir al editor sobre el alcance e importancia de la contribución. No debe ser una plantilla estándar ni repetir el resumen.
@@ -309,7 +308,7 @@ export async function generateArticle(tfgText: string, journalRules: JournalRule
   - RESULTS: Aplicar el Módulo de Resultados de Alto Impacto. Narrativa fluida, sin redundancia con tablas/figuras. Referencias explícitas a [INSERT TABLE/FIGURE X]. Si faltan visuales en el TFG, crear propuestas basadas en los datos.
   - DISCUSSION: Aplicar el Módulo de Discusión Interpretativa. Foco en interpretación, comparación y validez.
   - CONCLUSIONS: Aplicar el Módulo de Conclusiones de Alto Impacto. Asegurar la alineación con objetivos y la inclusión de aportes/futuras líneas.
-  - BIBLIOGRAPHY: Extract ALL references from the TFG (usually 15-20+). Use the EXACT format "1- [Reference text]" and put each on a NEW LINE. NO HTML.
+  - BIBLIOGRAPHY: Extract ALL references from the TFG (usually 15-20+). Use the EXACT format "1- [Reference text]" and put each on a NEW LINE. Ensure each reference is a single continuous string without internal line breaks. NO HTML.
   
   TFG Text: ${tfgText.substring(0, 28000)}...`;
 
