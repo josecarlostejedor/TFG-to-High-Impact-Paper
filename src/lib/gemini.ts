@@ -52,50 +52,7 @@ export interface TransformationResult {
   diagnosis: string;
 }
 
-export async function analyzeTFG(tfgText: string) {
-  const model = "gemini-3-flash-preview";
-  const prompt = `Analyze the following undergraduate thesis (TFG) and extract its core components: 
-  objective, methodology, key results, and main conclusions. 
-  
-  SISTEMA DE DIAGNÓSTICO ESTADÍSTICO:
-  Identify the statistical tests used and evaluate their appropriateness. 
-  Check if p-values are exact, if effect sizes are reported, and if assumptions (normality, etc.) are mentioned.
-  Specifically, look for the "STATISTICAL ANALYSIS" section and evaluate if it provides enough detail for a high-impact journal.
-  
-  Provide a "rigor diagnosis" identifying weaknesses for a high-impact journal, specifically focusing on methodology and statistics.
-  
-  TFG Text: ${tfgText.substring(0, 30000)}...`; // Limit text for safety
-
-  const response = await ai.models.generateContent({
-    model,
-    contents: prompt,
-    config: {
-      responseMimeType: "application/json",
-      responseSchema: {
-        type: Type.OBJECT,
-        properties: {
-          summary: { type: Type.STRING },
-          diagnosis: { type: Type.STRING },
-        },
-        required: ["summary", "diagnosis"],
-      },
-    },
-  });
-
-  return JSON.parse(response.text || "{}");
-}
-
-export async function generateArticle(tfgText: string, journalRules: JournalRules) {
-  const model = "gemini-3-flash-preview";
-  const prompt = `You are a world-class scientific editor and researcher specialized in high-impact medical journals. 
-  
-  TASK: Transform the provided Undergraduate Thesis (TFG) into a COMPREHENSIVE, DEEP, and RIGOROUS Original Research article for the journal "${journalRules.name}".
-  
-  CRITICAL PILLARS:
-  1. ADAPTACIÓN ESTRICTA A LA REVISTA: The manuscript must be a "tailor-made suit" for ${journalRules.name}. Apply every rule from the provided "Guide for Authors".
-  2. RIGOR CIENTÍFICO ABSOLUTO: Impeccable methodology, robust statistics, critical discussion. Identify and address weaknesses.
-  3. NO HTML TAGS: Do NOT use any HTML tags like <br>, <b>, <table>, etc. in any text field. Use plain text with standard line breaks.
-  
+const getQ1Modules = (journalName: string) => `
   MÓDULO: RESULTADOS DE ALTO IMPACTO (ESTÁNDAR Q1):
   Los resultados son el núcleo de la evidencia. Deben ser claros, precisos y no redundantes.
   1. PRINCIPIO DE NO-REDUNDANCIA: El texto debe INTERPRETAR los datos, no repetir los números que ya están en las tablas o figuras. Evitar duplicidades innecesarias.
@@ -170,7 +127,7 @@ export async function generateArticle(tfgText: string, journalRules: JournalRule
   2. ESTRUCTURA (2-3 párrafos):
      - Párrafo 1: Datos formales (título, autores, extensión, nº tablas/figuras). Declaración formal de que es un trabajo inédito y no enviado a otra revista.
      - Párrafo 2: Defensa de fortalezas. Subrayar originalidad, qué aporta de nuevo a la disciplina y premisas básicas.
-     - Párrafo 3: Idoneidad de la revista. Explicar por qué "${journalRules.name}" es el lugar ideal, vinculando el hallazgo con el alcance de la revista.
+     - Párrafo 3: Idoneidad de la revista. Explicar por qué "${journalName}" es el lugar ideal, vinculando el hallazgo con el alcance de la revista.
   3. OBJETIVO: Convencer al editor de que el trabajo tiene el alcance e importancia necesarios para ser revisado.
   
   MÓDULO: INVENTARIO VISUAL INTELIGENTE (ESTÁNDAR Q1):
@@ -185,6 +142,52 @@ export async function generateArticle(tfgText: string, journalRules: JournalRule
   3. ELEMENTOS AUTOSUFICIENTES: Cada tabla/figura debe entenderse sin el texto. Títulos y leyendas deben ser oraciones completas y descriptivas (Ej: "Figura 1. La exposición al Compuesto X reduce significativamente...").
   4. CURACIÓN VISUAL (MENOS ES MÁS): Prioriza los elementos que responden directamente a los objetivos. Prefiere 3 gráficos excelentes a 10 mediocres.
   5. INTEGRACIÓN: El texto de Resultados debe invocar las tablas/figuras por orden numérico y corresponderse con los datos.
+`;
+
+export async function analyzeTFG(tfgText: string) {
+  const model = "gemini-3-flash-preview";
+  const prompt = `Analyze the following undergraduate thesis (TFG) and extract its core components: 
+  objective, methodology, key results, and main conclusions. 
+  
+  SISTEMA DE DIAGNÓSTICO ESTADÍSTICO:
+  Identify the statistical tests used and evaluate their appropriateness. 
+  Check if p-values are exact, if effect sizes are reported, and if assumptions (normality, etc.) are mentioned.
+  Specifically, look for the "STATISTICAL ANALYSIS" section and evaluate if it provides enough detail for a high-impact journal.
+  
+  Provide a "rigor diagnosis" identifying weaknesses for a high-impact journal, specifically focusing on methodology and statistics.
+  
+  TFG Text: ${tfgText.substring(0, 30000)}...`; // Limit text for safety
+
+  const response = await ai.models.generateContent({
+    model,
+    contents: prompt,
+    config: {
+      responseMimeType: "application/json",
+      responseSchema: {
+        type: Type.OBJECT,
+        properties: {
+          summary: { type: Type.STRING },
+          diagnosis: { type: Type.STRING },
+        },
+        required: ["summary", "diagnosis"],
+      },
+    },
+  });
+
+  return JSON.parse(response.text || "{}");
+}
+
+export async function generateArticle(tfgText: string, journalRules: JournalRules) {
+  const model = "gemini-3-flash-preview";
+  const prompt = `You are a world-class scientific editor and researcher specialized in high-impact medical journals. 
+   TASK: Transform the provided Undergraduate Thesis (TFG) into a COMPREHENSIVE, DEEP, and RIGOROUS Original Research article for the journal "${journalRules.name}".
+  
+  CRITICAL PILLARS:
+  1. ADAPTACIÓN ESTRICTA A LA REVISTA: The manuscript must be a "tailor-made suit" for ${journalRules.name}. Apply every rule from the provided "Guide for Authors".
+  2. RIGOR CIENTÍFICO ABSOLUTO: Impeccable methodology, robust statistics, critical discussion. Identify and address weaknesses.
+  3. NO HTML TAGS: Do NOT use any HTML tags like <br>, <b>, <table>, etc. in any text field. Use plain text with standard line breaks.
+  
+  ${getQ1Modules(journalRules.name)}
   
   SISTEMA DE GESTIÓN DE TABLAS E IMÁGENES:
   1. IDENTIFICACIÓN: Create a detailed "visualInventory" of all tables and figures found in the TFG.
@@ -358,16 +361,17 @@ export async function refineArticle(currentArticle: string, instructions: string
   3. PROTOCOLO DE VALIDACIÓN PARA REVISTAS Q1 (CHECKLIST DEL REVISOR): Actúa como un REVISOR SEVERO. Evalúa Título (precisión), Abstract (gancho/datos), GAP (hueco de conocimiento), Objetivos (explícitos), Justificación Metodológica, Originalidad (anti-provincialismo), Cirugía de Texto (concisión) y Conclusiones con impacto. Debes poblar el campo "q1Validation" con esta evaluación detallada (criterion, status, feedback).
   4. AUTO-EVALUACIÓN Y CONSEJOS (CHECKLIST DE ALTO IMPACTO): Evalúa el manuscrito contra el checklist. Si faltan elementos o el TFG no los proporciona, genera consejos en "userMessages".
   5. NO HTML TAGS: Do NOT use any HTML tags in any text field.
-  6. INVENTARIO VISUAL INTELIGENTE: Asegurar que la presentación de datos sea óptima, no redundante y autosuficiente. Actualizar el visual inventory si las instrucciones afectan a tablas o figuras. Incluir números de página para figuras (o "crear figura").
-  7. METHODS FORMAT: Use new lines for subsections (e.g., STUDY POPULATION:\n[Text]).
-  8. BIBLIOGRAPHY: Extract ALL references. Use the format "1- [Reference text]" on new lines.
-  9. COVER LETTER Q1: Asegurar que la carta de presentación sea persuasiva, incluya declaraciones de originalidad, datos formales y justifique la idoneidad para la revista.
-  10. CONCLUSIONES Q1: Aplicar la estructura de Conclusión General -> Resultados Específicos -> Aportes/Futuro.
-  11. INTRODUCCIÓN Q1: Asegurar estructura de Antecedentes -> Marco Teórico -> Variables -> Justificación -> Objetivos/Hipótesis.
-  12. MÉTODOS Q1: Garantizar reproducibilidad mediante estructura: Diseño -> Ámbito -> Población -> Muestra -> Instrumentos -> Variables -> Ética -> Plan Estadístico.
-  13. DISCUSIÓN Q1: Estructura: Recapitulación -> Validez Interna/Limitaciones -> Comparación -> Validez Externa -> Recomendaciones.
-  14. ESTÁNDARES FORMALES Q1: Declarar adherencia a guías STROBE/CONSORT, aprobación ética y transparencia en la gestión de datos.
-  15. RESULTADOS Q1: Evitar redundancia texto-tabla. Crear visuales (tablas/gráficos) si el TFG no los tiene pero los datos son relevantes.
+  
+  ${getQ1Modules(journalRules.name)}
+  
+  CONTENT GUIDELINES:
+  - INTRODUCTION: Aplicar el Módulo de Introducción Estratégica.
+  - METHODS: Aplicar el Módulo de Métodos de Reproduducibilidad Total y el Módulo de Integridad y Estándares Formales.
+  - RESULTS: Aplicar el Módulo de Resultados de Alto Impacto.
+  - DISCUSSION: Aplicar el Módulo de Discusión Interpretativa.
+  - CONCLUSIONS: Aplicar el Módulo de Conclusiones de Alto Impacto.
+  - COVER LETTER: Aplicar el Módulo de Cover Letter Persuasiva.
+  - VISUALS: Aplicar el Módulo de Inventario Visual Inteligente.
   
   Current Article: ${currentArticle.substring(0, 20000)}...`;
 
