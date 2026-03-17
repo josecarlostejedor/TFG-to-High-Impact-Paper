@@ -231,12 +231,12 @@ export async function generateArticle(tfgText: string, journalRules: JournalRule
   SISTEMA DE GESTIÓN DE TABLAS E IMÁGENES:
   1. IDENTIFICACIÓN: Create a detailed "visualInventory" of all tables and figures found in the TFG.
   2. UBICACIÓN: Mark their recommended location in the text with placeholders like "[INSERT TABLE X]".
-  3. FORMATEO: For tables, provide a clear text-based representation (not HTML) that follows the journal's style in the "tables" field.
+  3. FORMATEO Y DATOS COMPLETOS (CRÍTICO): El campo "tables" DEBE contener la representación íntegra en formato texto (usando pipes | para columnas y filas) de TODAS las tablas identificadas (Table 1, Table 2, Table 3, etc.) ADEMÁS de la "STATISTICAL SUMMARY TABLE". No te limites a la descripción; el usuario necesita los datos brutos formateados para poder copiarlos directamente. Cada tabla debe estar claramente separada por su título.
   4. PAGE NUMBERS: For each figure, identify the page number where it appears in the original TFG. If it's a new figure that needs to be created, set the page number to "crear figura".
   
   SISTEMA AVANZADO DE ANÁLISIS ESTADÍSTICO CON TABLA RESUMEN PROFESIONAL:
   1. EXTRACCIÓN Y CLASIFICACIÓN: Identificar TODAS las pruebas estadísticas (paramétricas/no paramétricas), variables (dependientes/independientes), estadísticos (t, F, U, χ²), gl, valores p exactos, tamaños del efecto (Cohen's d, η², V de Cramer) e IC95%. Identificar software y versión.
-  2. INTEGRACIÓN EN MÉTODOS Y TABLAS: El apartado "STATISTICAL ANALYSIS" dentro de "METHODS" debe ser extenso y detallado. Al final de este apartado, DEBES incluir una tabla resumen en formato texto (usando pipes | para las columnas y filas). ADEMÁS, incluye esta misma "STATISTICAL SUMMARY TABLE" al principio del campo "tables" para que sea visible en la sección de tablas.
+  2. INTEGRACIÓN EN MÉTODOS Y TABLAS: El apartado "STATISTICAL ANALYSIS" dentro de "METHODS" debe ser extenso y detallado. Al final de este apartado, DEBES incluir una tabla resumen en formato texto (usando pipes | para las columnas y filas). ADEMÁS, incluye esta misma "STATISTICAL SUMMARY TABLE" al principio del campo "tables" para que sea visible en la sección de tablas, seguida de los datos de todas las demás tablas del inventario.
   3. VERIFICACIÓN Y CÁLCULO: Validar la coherencia prueba-variable. Si faltan tamaños del efecto, CALCULARLOS (t-test -> d=2t/√gl; ANOVA -> η²=F·gl_e/(F·gl_e+gl_d); Chi-sq -> V=√(χ²/(n·min(k-1,r-1)))).
   4. REPORTE EN RESULTADOS: Reporte riguroso en Resultados con estadísticos completos.
   
@@ -253,7 +253,8 @@ export async function generateArticle(tfgText: string, journalRules: JournalRule
      - Aplicar el Módulo de Inventario Visual Inteligente: Diagnóstico de formato, no-redundancia y elementos autosuficientes.
      - Tabla 1 (Baseline): La primera tabla debe ser siempre la de características basales/demográficas de la muestra.
      - Leyendas: Deben ser descriptivas y completas, permitiendo la comprensión independiente del elemento.
-  4. IDIOMA Y ESTILO ACADÉMICO:
+  4. IDIOMA, ESTILO Y LEGIBILIDAD (CRÍTICO - PUNTOS Y APARTE):
+     - PUNTOS Y APARTE OBLIGATORIOS: Es una exigencia absoluta usar puntos y aparte con frecuencia. NO generes bloques de texto densos o pegados. Cada idea principal o sección lógica DEBE tener su propio párrafo separado por un salto de línea doble (\n\n). Esto es vital para la legibilidad tanto en la interfaz como en el documento Word final. Si un apartado tiene más de 150 palabras, debe estar dividido en al menos 2 o 3 párrafos.
      - Preferencia por Voz Activa: Cambiar "It was found" por "We found" o "The results reveal".
      - Vocabulario Técnico: Usar terminología formal (ej. "examine" en lugar de "look at").
      - Consistencia: Mantener el mismo término para un concepto en todo el artículo (ej. no mezclar "subjects" and "participants").
@@ -397,9 +398,11 @@ export async function refineArticle(currentArticle: string, instructions: string
   CRITICAL RULES:
   1. ADAPTACIÓN ESTRICTA A LA REVISTA: Maintain strict adherence to the journal rules for "${journalRules.name}".
   2. RIGOR CIENTÍFICO Y ESTADÍSTICO (NIVEL Q1): Ensure high academic standards. Apply the Q1 High-Impact Pillars (Narrative/GAP, Transparency, Visual Impact, Active Voice, CRediT). Ensure the "STATISTICAL SUMMARY TABLE" is present in both Methods and the Tables section.
-  3. PROTOCOLO DE VALIDACIÓN PARA REVISTAS Q1 (CHECKLIST DEL REVISOR): Actúa como un REVISOR SEVERO. Evalúa Título (precisión), Abstract (gancho/datos), GAP (hueco de conocimiento), Objetivos (explícitos), Justificación Metodológica, Originalidad (anti-provincialismo), Cirugía de Texto (concisión) y Conclusiones con impacto. Debes poblar el campo "q1Validation" con esta evaluación detallada (criterion, status, feedback).
-  4. AUTO-EVALUACIÓN Y CONSEJOS (CHECKLIST DE ALTO IMPACTO): Evalúa el manuscrito contra el checklist. Si faltan elementos o el TFG no los proporciona, genera consejos en "userMessages".
-  5. NO HTML TAGS: Do NOT use any HTML tags in any text field.
+  3. GESTIÓN DE TABLAS (CRÍTICO): El campo "tables" DEBE contener la representación íntegra en formato texto (pipes |) de TODAS las tablas identificadas (Table 1, Table 2, etc.) ADEMÁS de la "STATISTICAL SUMMARY TABLE". No te limites a la descripción; el usuario necesita los datos brutos formateados.
+  4. LEGIBILIDAD (PUNTOS Y APARTE OBLIGATORIOS): Es una exigencia absoluta usar puntos y aparte con frecuencia. NO generes bloques de texto densos. Cada idea principal o sección lógica DEBE tener su propio párrafo separado por un salto de línea doble (\n\n). Si un apartado tiene más de 150 palabras, debe estar dividido en al menos 2 o 3 párrafos.
+  5. PROTOCOLO DE VALIDACIÓN PARA REVISTAS Q1 (CHECKLIST DEL REVISOR): Actúa como un REVISOR SEVERO. Evalúa Título (precisión), Abstract (gancho/datos), GAP (hueco de conocimiento), Objetivos (explícitos), Justificación Metodológica, Originalidad (anti-provincialismo), Cirugía de Texto (concisión) y Conclusiones con impacto. Debes poblar el campo "q1Validation" con esta evaluación detallada (criterion, status, feedback).
+  6. AUTO-EVALUACIÓN Y CONSEJOS (CHECKLIST DE ALTO IMPACTO): Evalúa el manuscrito contra el checklist. Si faltan elementos o el TFG no los proporciona, genera consejos en "userMessages".
+  7. NO HTML TAGS: Do NOT use any HTML tags in any text field.
   
   ${getQ1Modules(journalRules.name)}
   
