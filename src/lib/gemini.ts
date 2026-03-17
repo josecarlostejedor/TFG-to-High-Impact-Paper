@@ -96,6 +96,52 @@ export async function generateArticle(tfgText: string, journalRules: JournalRule
   2. RIGOR CIENTÍFICO ABSOLUTO: Impeccable methodology, robust statistics, critical discussion. Identify and address weaknesses.
   3. NO HTML TAGS: Do NOT use any HTML tags like <br>, <b>, <table>, etc. in any text field. Use plain text with standard line breaks.
   
+  MÓDULO: INTEGRIDAD Y ESTÁNDARES FORMALES (ESTÁNDAR Q1):
+  El manuscrito debe demostrar transparencia y adherencia a estándares internacionales de reporte.
+  1. DIRECTRICES DE REPORTE (EQUATOR NETWORK): Identificar el diseño del estudio y declarar explícitamente la adherencia a la directriz correspondiente:
+     - Ensayos clínicos: CONSORT.
+     - Estudios observacionales (transversales, cohortes, casos y controles): STROBE.
+     - Revisiones sistemáticas: PRISMA.
+  2. TRANSPARENCIA ÉTICA:
+     - Mencionar explícitamente el visto bueno del Comité de Ética de Investigación.
+     - Confirmar la obtención de consentimientos informados.
+     - Si aplica, incluir el registro de ensayos clínicos (ClinicalTrials.gov, ISRCTN).
+  3. DOCUMENTACIÓN DE APOYO: Mencionar (en métodos o agradecimientos) la disponibilidad de protocolos, bases de datos o cuadernos de recogida de datos para auditoría si la revista lo requiere.
+
+  MÓDULO: DISCUSIÓN INTERPRETATIVA (ESTÁNDAR Q1):
+  La Discusión es el culmen interpretativo del estudio. Su fin es determinar cómo los hallazgos modifican el conocimiento previo.
+  1. SECUENCIA ESTRUCTURADA:
+     a) Recapitulación: Hallazgos principales que responden a la pregunta de investigación (sin repetir números de resultados).
+     b) Validez Interna y Limitaciones: Balance honesto de fortalezas y debilidades.
+     c) Comparación: Contrastar con trabajos similares en diseño y metodología.
+     d) Validez Externa: Grado de generalización y extrapolación a otros contextos.
+     e) Recomendaciones: Líneas futuras de investigación basadas en los hallazgos.
+  2. REGLAS EDITORIALES:
+     - Interpretación honesta, no especulativa.
+     - Evitar revisiones de literatura desenfocadas o excesivamente largas.
+     - Conexión directa con los objetivos de la Introducción.
+
+  MÓDULO: MÉTODOS DE REPRODUCIBILIDAD TOTAL (ESTÁNDAR Q1):
+  La sección de Métodos (o Material y Método) es el corazón técnico del artículo y la más evaluada por los revisores. Su fin es garantizar la reproducibilidad absoluta.
+  1. ESTRUCTURA LÓGICA Y OBLIGATORIA:
+     - Diseño: Tipo de estudio.
+     - Ámbito y periodo: Dónde y cuándo se realizó.
+     - Población y Muestra: Definición de población, criterios de inclusión/exclusión, cálculo del tamaño muestral y selección de sujetos.
+     - Procedimientos: Fuentes de información, intervenciones (si aplica) e instrumentos utilizados.
+     - Variables: Definición clara de variables dependientes e independientes.
+     - Ética: Aspectos éticos y aprobaciones de comités.
+     - Plan Estadístico: Detalle exhaustivo del análisis (vinculado al Módulo de Análisis Estadístico Avanzado).
+  2. REGLA DE ORO: Debe permitir a otro investigador replicar el estudio exactamente. Si se basa en un protocolo publicado previamente, debe citarse.
+
+  MÓDULO: INTRODUCCIÓN ESTRATÉGICA (ESTÁNDAR Q1):
+  La introducción es la carta de presentación ante editores y revisores. Debe contextualizar y justificar el estudio con precisión.
+  1. ESTRUCTURA OBLIGATORIA:
+     a) Definición y antecedentes: Contexto claro del problema estudiado.
+     b) Marco teórico y variables: Definición de conceptos y variables clave.
+     c) Justificación y Alcance: Por qué es importante el estudio y hasta dónde llega.
+     d) Objetivos e Hipótesis: Declaración explícita al final de la sección (hipótesis obligatoria en diseños analíticos).
+  2. ESTILO: Breve y directo (similar a un protocolo pero más conciso). Priorizar referencias de revisiones sistemáticas recientes. Las citas deben ser precisas y estar vinculadas directamente a los objetivos.
+
   MÓDULO: CONCLUSIONES DE ALTO IMPACTO (ESTÁNDAR Q1):
   Las conclusiones deben ser una síntesis potente alineada con los objetivos.
   1. ESTRUCTURA OBLIGATORIA:
@@ -219,9 +265,10 @@ export async function generateArticle(tfgText: string, journalRules: JournalRule
   CONTENT GUIDELINES:
   - EXTENSION: Aim for 3000-5000 words. EXPAND the TFG, do not just summarize it.
   - METADATA: Provide 3 title proposals. Include author normalization recommendations (IraLIS/FECYT).
-  - INTRODUCTION: Use the "funnel" structure (Context -> State of the Art -> Gap -> Hypothesis/Objective).
-  - METHODS: Surgical detail on Design, Population, Variables, Procedures, and Statistical Analysis. Use new lines (punto y aparte) for each subsection (e.g., STUDY POPULATION:\n[Text]\n\nDATA COLLECTION:\n[Text]).
+  - INTRODUCTION: Aplicar el Módulo de Introducción Estratégica. Estructura de embudo (Contexto -> Estado del Arte -> GAP -> Justificación -> Objetivos/Hipótesis).
+  - METHODS: Aplicar el Módulo de Métodos de Reproduducibilidad Total y el Módulo de Integridad y Estándares Formales. Declarar adherencia a STROBE/CONSORT según diseño.
   - RESULTS: Narrative flow with explicit table/figure references. Include ALL stats (p-values, CIs).
+  - DISCUSSION: Aplicar el Módulo de Discusión Interpretativa. Foco en interpretación, comparación y validez.
   - CONCLUSIONS: Aplicar el Módulo de Conclusiones de Alto Impacto. Asegurar la alineación con objetivos y la inclusión de aportes/futuras líneas.
   - BIBLIOGRAPHY: Extract ALL references from the TFG (usually 15-20+). Use the EXACT format "1- [Reference text]" and put each on a NEW LINE. NO HTML.
   
@@ -306,6 +353,10 @@ export async function refineArticle(currentArticle: string, instructions: string
   8. BIBLIOGRAPHY: Extract ALL references. Use the format "1- [Reference text]" on new lines.
   9. COVER LETTER Q1: Asegurar que la carta de presentación sea persuasiva, incluya declaraciones de originalidad, datos formales y justifique la idoneidad para la revista.
   10. CONCLUSIONES Q1: Aplicar la estructura de Conclusión General -> Resultados Específicos -> Aportes/Futuro.
+  11. INTRODUCCIÓN Q1: Asegurar estructura de Antecedentes -> Marco Teórico -> Variables -> Justificación -> Objetivos/Hipótesis.
+  12. MÉTODOS Q1: Garantizar reproducibilidad mediante estructura: Diseño -> Ámbito -> Población -> Muestra -> Instrumentos -> Variables -> Ética -> Plan Estadístico.
+  13. DISCUSIÓN Q1: Estructura: Recapitulación -> Validez Interna/Limitaciones -> Comparación -> Validez Externa -> Recomendaciones.
+  14. ESTÁNDARES FORMALES Q1: Declarar adherencia a guías STROBE/CONSORT, aprobación ética y transparencia en la gestión de datos.
   
   Current Article: ${currentArticle.substring(0, 20000)}...`;
 
