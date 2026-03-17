@@ -3,7 +3,7 @@ import { createServer as createViteServer } from "vite";
 import path from "path";
 import multer from "multer";
 import fs from "fs";
-import { extractTextFromPDF, extractTextFromDocx } from "./src/lib/parser.js";
+import { extractTextFromPDF, extractTextFromDocx } from "./src/lib/parser";
 
 // Increase limit to 4MB to be safe with Vercel's 4.5MB payload limit
 const upload = multer({ 
