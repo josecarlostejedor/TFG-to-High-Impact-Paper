@@ -64,84 +64,110 @@ const getQ1Modules = (journalName: string) => `
   4. FLUJO NARRATIVO: Organizar los resultados siguiendo la lógica de los objetivos. Cada párrafo debe invocar a su tabla/figura correspondiente (Ej: "Como se muestra en la Tabla 1...").
 
   MÓDULO: INTEGRIDAD Y ESTÁNDARES FORMALES (ESTÁNDAR Q1):
-  El manuscrito debe demostrar transparencia y adherencia a estándares internacionales de reporte.
-  1. DIRECTRICES DE REPORTE (EQUATOR NETWORK): Identificar el diseño del estudio y declarar explícitamente la adherencia a la directriz correspondiente:
+  El manuscrito debe demostrar transparencia absoluta y adherencia a estándares internacionales de reporte y ética.
+  1. DIRECTRICES DE REPORTE (EQUATOR NETWORK):
+     Es obligatorio identificar el diseño del estudio y declarar la adherencia a la directriz específica:
      - Ensayos clínicos: CONSORT.
      - Estudios observacionales (transversales, cohortes, casos y controles): STROBE.
      - Revisiones sistemáticas: PRISMA.
-  2. TRANSPARENCIA ÉTICA:
+     - Otros diseños: Consultar el repositorio de Equator Network.
+  2. TRANSPARENCIA ÉTICA Y REGISTRO:
      - Mencionar explícitamente el visto bueno del Comité de Ética de Investigación.
-     - Confirmar la obtención de consentimientos informados.
-     - Si aplica, incluir el registro de ensayos clínicos (ClinicalTrials.gov, ISRCTN).
-  3. DOCUMENTACIÓN DE APOYO: Mencionar (en métodos o agradecimientos) la disponibilidad de protocolos, bases de datos o cuadernos de recogida de datos para auditoría si la revista lo requiere.
+     - Confirmar la obtención de consentimientos informados de todos los participantes.
+     - En estudios experimentales, incluir el registro obligatorio (ej. ClinicalTrials.gov o ISRCTN Register).
+     - Declaración de conflicto de intereses: Recopilar y declarar la situación de todos los autores.
+  3. DOCUMENTACIÓN DE APOYO Y REPRODUCIBILIDAD:
+     - Mencionar la disponibilidad de material relevante: protocolo de investigación, base de datos, salida de resultados, cuaderno de recogida de datos o publicaciones relacionadas.
+     - Indicar en la sección de Métodos o Agradecimientos cómo se puede consultar esta documentación para garantizar la transparencia del proceso.
 
   MÓDULO: DISCUSIÓN INTERPRETATIVA (ESTÁNDAR Q1):
-  La Discusión es el culmen interpretativo del estudio. Su fin es determinar cómo los hallazgos modifican el conocimiento previo.
-  1. SECUENCIA ESTRUCTURADA:
-     a) Recapitulación: Hallazgos principales que responden a la pregunta de investigación (sin repetir números de resultados).
-     b) Validez Interna y Limitaciones: Balance honesto de fortalezas y debilidades.
-     c) Comparación: Contrastar con trabajos similares en diseño y metodología.
-     d) Validez Externa: Grado de generalización y extrapolación a otros contextos.
-     e) Recomendaciones: Líneas futuras de investigación basadas en los hallazgos.
-  2. REGLAS EDITORIALES:
+  La Discusión es el culmen del proceso de investigación en su fase interpretativa. Su finalidad es interpretar los hallazgos en función del conocimiento previo y determinar si se modifica dicho conocimiento.
+  1. SECUENCIA ESTRUCTURADA OBLIGATORIA:
+     a) Recapitulación: Hallazgos principales que constituyen la respuesta a la pregunta principal (sin repetir números de resultados).
+     b) Validez Interna y Limitaciones: Balance honesto de puntos fuertes y débiles.
+     c) Comparación: Contrastar resultados con otros trabajos de diseño y metodología similares.
+     d) Validez Externa: Grado de generalización o extrapolación a otros contextos.
+     e) Recomendaciones y líneas futuras de investigación.
+     f) Conclusiones: Respuesta directa a los objetivos planteados en la Introducción.
+  2. REGLAS DE ORO:
+     - NO repetir los resultados.
      - Interpretación honesta, no especulativa.
      - Evitar revisiones de literatura desenfocadas o excesivamente largas.
-     - Conexión directa con los objetivos de la Introducción.
+     - Evitar especulación excesiva sobre hallazgos secundarios.
 
   MÓDULO: MÉTODOS DE REPRODUCIBILIDAD TOTAL (ESTÁNDAR Q1):
-  La sección de Métodos (o Material y Método) es el corazón técnico del artículo y la más evaluada por los revisores. Su fin es garantizar la reproducibilidad absoluta.
-  1. ESTRUCTURA LÓGICA Y OBLIGATORIA:
+  También denominado "Material y método", su función es presentar la metodología con detalle quirúrgico para garantizar el principio de reproducibilidad. Es el apartado más evaluado por los revisores.
+  1. ESTRUCTURA LÓGICA Y ORDENADA:
      - Diseño: Tipo de estudio.
-     - Ámbito y periodo: Dónde y cuándo se realizó.
-     - Población y Muestra: Definición de población, criterios de inclusión/exclusión, cálculo del tamaño muestral y selección de sujetos.
-     - Procedimientos: Fuentes de información, intervenciones (si aplica) e instrumentos utilizados.
-     - Variables: Definición clara de variables dependientes e independientes.
-     - Ética: Aspectos éticos y aprobaciones de comités.
-     - Plan Estadístico: Detalle exhaustivo del análisis (vinculado al Módulo de Análisis Estadístico Avanzado).
-  2. REGLA DE ORO: Debe permitir a otro investigador replicar el estudio exactamente. Si se basa en un protocolo publicado previamente, debe citarse.
+     - Ámbito y periodo de estudio: Dónde y cuándo.
+     - Población de estudio: Definición, criterios de inclusión y exclusión.
+     - Muestra: Cálculo del tamaño muestral y selección de sujetos.
+     - Procedimientos: Fuentes de información e intervenciones (si aplica).
+     - Instrumentos: Herramientas de medición utilizadas.
+     - Variables: Definición clara de dependientes e independientes.
+     - Aspectos Éticos: Aprobaciones y cumplimiento normativo.
+     - Plan Estadístico: Detalle exhaustivo del análisis.
+  2. REGLA DE ORO: Si el estudio se basa en un protocolo publicado previamente, debe citarse el "artículo de protocolo" y presentar el método de forma breve.
 
   MÓDULO: INTRODUCCIÓN ESTRATÉGICA (ESTÁNDAR Q1):
-  La introducción es la carta de presentación ante editores y revisores. Debe contextualizar y justificar el estudio con precisión.
+  La introducción es la carta de presentación del artículo ante editores, revisores y lectores. Su objeto es contextualizar y justificar el estudio.
   1. ESTRUCTURA OBLIGATORIA:
-     a) Definición y antecedentes: Contexto claro del problema estudiado.
-     b) Marco teórico y variables: Definición de conceptos y variables clave.
-     c) Justificación y Alcance: Por qué es importante el estudio y hasta dónde llega.
-     d) Objetivos e Hipótesis: Declaración explícita al final de la sección (hipótesis obligatoria en diseños analíticos).
-  2. ESTILO: Breve y directo (similar a un protocolo pero más conciso). Priorizar referencias de revisiones sistemáticas recientes. Las citas deben ser precisas y estar vinculadas directamente a los objetivos.
+     a) Definición y antecedentes: Antecedentes claros del problema estudiado.
+     b) Marco teórico: Si lo hubiese, integrarlo de forma coherente.
+     c) Variables clave: Definición precisa de las variables de estudio.
+     d) Justificación, importancia y alcance: Explicar por qué es relevante y cuál es su impacto.
+     e) Objetivos e Hipótesis: Declaración explícita al final (hipótesis obligatoria en diseños analíticos).
+  2. ESTILO Y RIGOR:
+     - Brevedad y precisión: Similar a los antecedentes de un protocolo pero más conciso.
+     - Evidencia actual: Priorizar el uso de revisiones sistemáticas recientes.
+     - Citas estratégicas: Las referencias deben ser las justas y estar vinculadas directamente a los objetivos e hipótesis.
 
   MÓDULO: CONCLUSIONES DE ALTO IMPACTO (ESTÁNDAR Q1):
-  Las conclusiones deben ser una síntesis potente alineada con los objetivos.
-  1. ESTRUCTURA OBLIGATORIA:
-     a) Conclusión General: Alineada al objetivo general, integrando el resultado principal.
-     b) Resultados Principales: Vinculados directamente a los objetivos específicos.
-     c) Aportes, Beneficios y Futuro: Resaltar la utilidad de los hallazgos, proponer 1-2 líneas de trabajo futuro y mencionar limitaciones críticas.
-  2. REGLAS DE ORO:
-     - No incorporar elementos no tratados en la investigación.
-     - No usar el marco teórico para reforzar resultados.
-     - Evitar juicios de valor personales sobre la importancia de los resultados.
-     - Los aportes pueden referirse tanto al resultado general como a los específicos.
+  Las conclusiones sintetizan los resultados en función de los objetivos trazados.
+  1. REGLA DE ORO (ALINEACIÓN): Las conclusiones se construyen con los resultados obtenidos, pero SIEMPRE alineados a los objetivos del estudio.
+  2. ESTRUCTURA OBLIGATORIA Y ORDEN:
+     a) Conclusión General: Debe estar alineada al cumplimiento del objetivo general, incluyendo el resultado principal.
+     b) Resultados Principales: Señalar los hallazgos relacionados con los objetivos específicos.
+     c) Aportes, Beneficios y Futuro: Resaltar la utilidad de los resultados. Incluir 1-2 recomendaciones de trabajo futuro. Mencionar aquello que no se haya podido demostrar (limitaciones) para guiar a futuros investigadores.
+  3. RESTRICCIONES CRÍTICAS:
+     - Prohibido incorporar elementos no tratados en la investigación.
+     - No utilizar el marco teórico para reforzar los resultados.
+     - No exponer la importancia personal o juicios de valor sobre los resultados.
+     - Los aportes y beneficios pueden referirse tanto al resultado general como a los específicos.
 
   MÓDULO: COVER LETTER PERSUASIVA (ESTÁNDAR Q1):
-  La carta de presentación es una herramienta para persuadir al editor. No debe ser una plantilla estándar ni repetir el resumen.
-  1. TONO: Ligeramente más informal que el artículo, dirigida directamente al editor.
-  2. ESTRUCTURA (2-3 párrafos):
-     - Párrafo 1: Datos formales (título, autores, extensión, nº tablas/figuras). Declaración formal de que es un trabajo inédito y no enviado a otra revista.
-     - Párrafo 2: Defensa de fortalezas. Subrayar originalidad, qué aporta de nuevo a la disciplina y premisas básicas.
-     - Párrafo 3: Idoneidad de la revista. Explicar por qué "${journalName}" es el lugar ideal, vinculando el hallazgo con el alcance de la revista.
-  3. OBJETIVO: Convencer al editor de que el trabajo tiene el alcance e importancia necesarios para ser revisado.
+  La carta de presentación (cover letter) es una herramienta estratégica para persuadir al editor sobre el alcance e importancia de la contribución. No debe ser una plantilla estándar ni repetir el resumen.
+  1. TONO Y ESTILO:
+     - Tono algo más informal que la redacción científica (comunicación directa con el editor).
+     - Contenido conciso: 2-3 párrafos máximo.
+     - Individualización total: Adecuar el mensaje específicamente a la revista "${journalName}".
+  2. ESTRUCTURA Y CONTENIDO:
+     - Datos Formales: Incluir título, autores, extensión del artículo, número de tablas y figuras.
+     - Declaración Ética: Declaración formal de que es una aportación inédita y no ha sido enviada a otra revista.
+     - Defensa de Fortalezas: Subrayar la originalidad del trabajo y qué aporta de nuevo a la disciplina.
+     - Idoneidad de la Revista: Explicar por qué "${journalName}" es el lugar ideal. Es muy recomendable hacer referencia a artículos similares publicados recientemente en esta misma revista para demostrar alineación con su línea editorial.
+  3. OBJETIVO: Marcar la diferencia para que el editor decida enviar el trabajo a revisión en lugar de rechazarlo inicialmente.
   
-  MÓDULO: INVENTARIO VISUAL INTELIGENTE (ESTÁNDAR Q1):
-  Tu tarea es transformar los datos dispersos (texto, tablas crudas, figuras preliminares) en una estrategia de presentación de nivel Q1. Actúa como un editor gráfico y científico.
+  MÓDULO: INVENTARIO VISUAL INTELIGENTE Y RESULTADOS (ESTÁNDAR Q1):
+  Fase 4.1: Ingeniería de la Presentación Visual y Desarrollo de Resultados.
+  El apartado de Resultados es crucial y debe ser desarrollado exhaustivamente sin redundancias. Debes actuar como un editor gráfico y científico siguiendo el estilo APA 7.
   
-  1. DIAGNÓSTICO DE FORMATO ÓPTIMO: Evalúa cada hallazgo clave y decide el formato:
-     - TEXTO: Para narración o cuando solo hay 1-2 números específicos.
-     - TABLAS: Para datos precisos y comparaciones múltiples (demografía, regresiones).
-     - GRÁFICOS: Para tendencias, comparaciones y predicciones. Sugerir tipo ideal (Boxplot, Forest plot, etc.).
-     - ILUSTRACIONES: Para procesos, flujos de trabajo o modelos conceptuales.
-  2. PRINCIPIO DE NO-REDUNDANCIA: Prohibido presentar la misma información en dos formatos. El texto debe INTERPRETAR, NO repetir los números de la imagen.
-  3. ELEMENTOS AUTOSUFICIENTES: Cada tabla/figura debe entenderse sin el texto. Títulos y leyendas deben ser oraciones completas y descriptivas (Ej: "Figura 1. La exposición al Compuesto X reduce significativamente...").
-  4. CURACIÓN VISUAL (MENOS ES MÁS): Prioriza los elementos que responden directamente a los objetivos. Prefiere 3 gráficos excelentes a 10 mediocres.
-  5. INTEGRACIÓN: El texto de Resultados debe invocar las tablas/figuras por orden numérico y corresponderse con los datos.
+  Sigue estrictamente estas directrices:
+  1. DIAGNÓSTICO Y CREACIÓN SINTÉTICA:
+     - Si el TFG contiene información dispersa, debes diseñar la estrategia de presentación óptima.
+     - CRÍTICO: Si el TFG NO tiene tablas o gráficos explícitos, DEBES CREARLOS. Sintetiza los datos clave del texto en una "Tabla de Hallazgos Principales" o un "Gráfico de Tendencias" (representación en texto) e inclúyelos en la pestaña de Tablas. No dejes el artículo sin apoyo visual.
+  2. PRINCIPIO DE NO REDUNDANCIA Y APA 7:
+     - Evita duplicidades: No repitas en el texto lo que ya está en las tablas/figuras. El texto debe INTERPRETAR, no visualizar.
+     - Estilo APA 7: Organización impecable de la información estadística. Evita el uso excesivo o sobredimensionado de elementos; cada uno debe ser esencial.
+  3. DESARROLLO DE LA SECCIÓN RESULTADOS:
+     - No debe ser escaso. Debe ser un desarrollo riguroso y detallado de los hallazgos vinculados a los objetivos.
+     - Usa TEXTO para narrar la lógica y destacar hitos.
+     - Usa TABLAS para datos exactos y comparaciones múltiples (Isla de información autosuficiente).
+     - Usa GRÁFICOS para revelar tendencias y comparaciones visuales de alto impacto.
+  4. CONSTRUCCIÓN DE ELEMENTOS AUTOSUFICIENTES:
+     - Cada elemento debe entenderse sin leer el texto. Títulos descriptivos (frases completas) en el pie de figura o cabecera de tabla.
+  5. FLUJO NARRATIVO:
+     - Invoca tablas y figuras en orden numérico. El texto guía al lector a través de la evidencia visual sin repetir los datos brutos.
 `;
 
 export async function analyzeTFG(tfgText: string) {
