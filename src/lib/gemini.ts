@@ -96,6 +96,19 @@ export async function generateArticle(tfgText: string, journalRules: JournalRule
   2. RIGOR CIENTÍFICO ABSOLUTO: Impeccable methodology, robust statistics, critical discussion. Identify and address weaknesses.
   3. NO HTML TAGS: Do NOT use any HTML tags like <br>, <b>, <table>, etc. in any text field. Use plain text with standard line breaks.
   
+  MÓDULO: INVENTARIO VISUAL INTELIGENTE (ESTÁNDAR Q1):
+  Tu tarea es transformar los datos dispersos (texto, tablas crudas, figuras preliminares) en una estrategia de presentación de nivel Q1. Actúa como un editor gráfico y científico.
+  
+  1. DIAGNÓSTICO DE FORMATO ÓPTIMO: Evalúa cada hallazgo clave y decide el formato:
+     - TEXTO: Para narración o cuando solo hay 1-2 números específicos.
+     - TABLAS: Para datos precisos y comparaciones múltiples (demografía, regresiones).
+     - GRÁFICOS: Para tendencias, comparaciones y predicciones. Sugerir tipo ideal (Boxplot, Forest plot, etc.).
+     - ILUSTRACIONES: Para procesos, flujos de trabajo o modelos conceptuales.
+  2. PRINCIPIO DE NO-REDUNDANCIA: Prohibido presentar la misma información en dos formatos. El texto debe INTERPRETAR, NO repetir los números de la imagen.
+  3. ELEMENTOS AUTOSUFICIENTES: Cada tabla/figura debe entenderse sin el texto. Títulos y leyendas deben ser oraciones completas y descriptivas (Ej: "Figura 1. La exposición al Compuesto X reduce significativamente...").
+  4. CURACIÓN VISUAL (MENOS ES MÁS): Prioriza los elementos que responden directamente a los objetivos. Prefiere 3 gráficos excelentes a 10 mediocres.
+  5. INTEGRACIÓN: El texto de Resultados debe invocar las tablas/figuras por orden numérico y corresponderse con los datos.
+  
   SISTEMA DE GESTIÓN DE TABLAS E IMÁGENES:
   1. IDENTIFICACIÓN: Create a detailed "visualInventory" of all tables and figures found in the TFG.
   2. UBICACIÓN: Mark their recommended location in the text with placeholders like "[INSERT TABLE X]".
@@ -117,10 +130,10 @@ export async function generateArticle(tfgText: string, journalRules: JournalRule
      - Declaración de Disponibilidad de Datos: Incluir en "acknowledgments" o al final de "methods" cómo acceder a los datos.
      - Limitaciones del Estudio: No esconder defectos; discutirlos honestamente en una subsección de la Discusión.
      - Criterios de INCLUSIÓN/EXCLUSIÓN: Obligatorios en la sección de Métodos para garantizar reproducibilidad.
-  3. IMPACTO VISUAL AVANZADO:
-     - Sugerencia de Gráficos: En el "visualInventory", sugerir el tipo de gráfico ideal (ej. Boxplot para varianza, Forest plot para meta-análisis).
-     - Leyendas Auto-explicativas: Las leyendas deben describir qué es, cómo se obtuvo, n= y significado de barras de error/símbolos.
+  3. IMPACTO VISUAL AVANZADO (Q1):
+     - Aplicar el Módulo de Inventario Visual Inteligente: Diagnóstico de formato, no-redundancia y elementos autosuficientes.
      - Tabla 1 (Baseline): La primera tabla debe ser siempre la de características basales/demográficas de la muestra.
+     - Leyendas: Deben ser descriptivas y completas, permitiendo la comprensión independiente del elemento.
   4. IDIOMA Y ESTILO ACADÉMICO:
      - Preferencia por Voz Activa: Cambiar "It was found" por "We found" o "The results reveal".
      - Vocabulario Técnico: Usar terminología formal (ej. "examine" en lugar de "look at").
@@ -266,7 +279,7 @@ export async function refineArticle(currentArticle: string, instructions: string
   3. PROTOCOLO DE VALIDACIÓN PARA REVISTAS Q1 (CHECKLIST DEL REVISOR): Actúa como un REVISOR SEVERO. Evalúa Título (precisión), Abstract (gancho/datos), GAP (hueco de conocimiento), Objetivos (explícitos), Justificación Metodológica, Originalidad (anti-provincialismo), Cirugía de Texto (concisión) y Conclusiones con impacto. Debes poblar el campo "q1Validation" con esta evaluación detallada (criterion, status, feedback).
   4. AUTO-EVALUACIÓN Y CONSEJOS (CHECKLIST DE ALTO IMPACTO): Evalúa el manuscrito contra el checklist. Si faltan elementos o el TFG no los proporciona, genera consejos en "userMessages".
   5. NO HTML TAGS: Do NOT use any HTML tags in any text field.
-  6. VISUAL INVENTORY: Update the visual inventory if the instructions affect tables or figures. Include page numbers for figures (or "crear figura").
+  6. INVENTARIO VISUAL INTELIGENTE: Asegurar que la presentación de datos sea óptima, no redundante y autosuficiente. Actualizar el visual inventory si las instrucciones afectan a tablas o figuras. Incluir números de página para figuras (o "crear figura").
   7. METHODS FORMAT: Use new lines for subsections (e.g., STUDY POPULATION:\n[Text]).
   8. BIBLIOGRAPHY: Extract ALL references. Use the format "1- [Reference text]" on new lines.
   
