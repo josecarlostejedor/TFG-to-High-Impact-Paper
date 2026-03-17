@@ -96,6 +96,16 @@ export async function generateArticle(tfgText: string, journalRules: JournalRule
   2. RIGOR CIENTÍFICO ABSOLUTO: Impeccable methodology, robust statistics, critical discussion. Identify and address weaknesses.
   3. NO HTML TAGS: Do NOT use any HTML tags like <br>, <b>, <table>, etc. in any text field. Use plain text with standard line breaks.
   
+  MÓDULO: RESULTADOS DE ALTO IMPACTO (ESTÁNDAR Q1):
+  Los resultados son el núcleo de la evidencia. Deben ser claros, precisos y no redundantes.
+  1. PRINCIPIO DE NO-REDUNDANCIA: El texto debe INTERPRETAR los datos, no repetir los números que ya están en las tablas o figuras. Evitar duplicidades innecesarias.
+  2. SELECCIÓN DE FORMATO (APA 7 / Q1):
+     - Texto plano: Para hallazgos simples (1-2 datos).
+     - Tablas: Para comparaciones complejas, demografía y modelos estadísticos.
+     - Figuras/Gráficos: Para tendencias, distribuciones y relaciones visuales.
+  3. CREACIÓN PROACTIVA: Si el TFG carece de tablas o gráficos pero los datos lo permiten, DEBES crear propuestas de tablas/figuras nuevas (indicando "crear tabla/figura" en el inventario) para elevar la calidad del artículo.
+  4. FLUJO NARRATIVO: Organizar los resultados siguiendo la lógica de los objetivos. Cada párrafo debe invocar a su tabla/figura correspondiente (Ej: "Como se muestra en la Tabla 1...").
+
   MÓDULO: INTEGRIDAD Y ESTÁNDARES FORMALES (ESTÁNDAR Q1):
   El manuscrito debe demostrar transparencia y adherencia a estándares internacionales de reporte.
   1. DIRECTRICES DE REPORTE (EQUATOR NETWORK): Identificar el diseño del estudio y declarar explícitamente la adherencia a la directriz correspondiente:
@@ -267,7 +277,7 @@ export async function generateArticle(tfgText: string, journalRules: JournalRule
   - METADATA: Provide 3 title proposals. Include author normalization recommendations (IraLIS/FECYT).
   - INTRODUCTION: Aplicar el Módulo de Introducción Estratégica. Estructura de embudo (Contexto -> Estado del Arte -> GAP -> Justificación -> Objetivos/Hipótesis).
   - METHODS: Aplicar el Módulo de Métodos de Reproduducibilidad Total y el Módulo de Integridad y Estándares Formales. Declarar adherencia a STROBE/CONSORT según diseño.
-  - RESULTS: Narrative flow with explicit table/figure references. Include ALL stats (p-values, CIs).
+  - RESULTS: Aplicar el Módulo de Resultados de Alto Impacto. Narrativa fluida, sin redundancia con tablas/figuras. Referencias explícitas a [INSERT TABLE/FIGURE X]. Si faltan visuales en el TFG, crear propuestas basadas en los datos.
   - DISCUSSION: Aplicar el Módulo de Discusión Interpretativa. Foco en interpretación, comparación y validez.
   - CONCLUSIONS: Aplicar el Módulo de Conclusiones de Alto Impacto. Asegurar la alineación con objetivos y la inclusión de aportes/futuras líneas.
   - BIBLIOGRAPHY: Extract ALL references from the TFG (usually 15-20+). Use the EXACT format "1- [Reference text]" and put each on a NEW LINE. NO HTML.
@@ -357,6 +367,7 @@ export async function refineArticle(currentArticle: string, instructions: string
   12. MÉTODOS Q1: Garantizar reproducibilidad mediante estructura: Diseño -> Ámbito -> Población -> Muestra -> Instrumentos -> Variables -> Ética -> Plan Estadístico.
   13. DISCUSIÓN Q1: Estructura: Recapitulación -> Validez Interna/Limitaciones -> Comparación -> Validez Externa -> Recomendaciones.
   14. ESTÁNDARES FORMALES Q1: Declarar adherencia a guías STROBE/CONSORT, aprobación ética y transparencia en la gestión de datos.
+  15. RESULTADOS Q1: Evitar redundancia texto-tabla. Crear visuales (tablas/gráficos) si el TFG no los tiene pero los datos son relevantes.
   
   Current Article: ${currentArticle.substring(0, 20000)}...`;
 
