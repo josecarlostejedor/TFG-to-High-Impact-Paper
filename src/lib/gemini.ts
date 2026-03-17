@@ -42,6 +42,11 @@ export interface TransformationResult {
     pageNumber?: string; // Page number in original TFG or "crear figura"
   }[];
   coverLetter: string;
+  q1Validation: {
+    criterion: string;
+    status: 'pass' | 'fail' | 'warning';
+    feedback: string;
+  }[];
   checklist: string[];
   userMessages: string[]; // Advice for the user based on missing checklist items
   diagnosis: string;
@@ -119,11 +124,30 @@ export async function generateArticle(tfgText: string, journalRules: JournalRule
   4. IDIOMA Y ESTILO ACADÉMICO:
      - Preferencia por Voz Activa: Cambiar "It was found" por "We found" o "The results reveal".
      - Vocabulario Técnico: Usar terminología formal (ej. "examine" en lugar de "look at").
-     - Consistencia: Mantener el mismo término para un concepto en todo el artículo (ej. no mezclar "subjects" y "participants").
+     - Consistencia: Mantener el mismo término para un concepto en todo el artículo (ej. no mezclar "subjects" and "participants").
   5. VALIDACIÓN EDITORIAL Y ÉTICA:
      - Contribuciones CRediT: Generar el párrafo detallado en "creditStatement".
      - Conflicto de Intereses: Incluir declaración estándar en "acknowledgments".
      - Extensión: Ajustar a 3000-5000 palabras, expandiendo el contenido del TFG con profundidad académica.
+
+  PROTOCOLO DE VALIDACIÓN PARA REVISTAS Q1 (CHECKLIST DEL REVISOR):
+  Eres un asistente experto en publicaciones de alto impacto. Antes de dar por finalizado el artículo, debes actuar como un REVISOR SEVERO PERO CONSTRUCTIVO. Revisa el borrador del artículo y aplícale los siguientes filtros de calidad de forma iterativa. Si encuentras que algún punto no se cumple, debes reescribir o sugerir al usuario (mediante comentarios entre corchetes [ ]) los cambios necesarios para alcanzar el estándar Q1.
+
+  1. ANÁLISIS DE TÍTULO (Precisión vs. Ambigüedad): Evalúa si el título refleja con precisión el alcance o es demasiado genérico. Si es vago, reescríbelo para incluir ámbito, población o variable principal.
+  2. ESCANEO DEL RESUMEN (Concisión y Gancho): Debe contener Propósito, Metodología, Resultados relevantes (datos concretos) y Conclusión. Incidir en la novedad.
+  3. CONEXIÓN CON EL ESTADO DEL ARTE: La introducción debe demostrar conocimiento y terminar con una declaración explícita del "GAP". Priorizar referencias de los últimos 3-5 años.
+  4. DECLARACIÓN EXPLÍCITA DE OBJETIVOS: Deben estar claros al final de la introducción: "Para abordar esta cuestión, este estudio tiene como objetivo...".
+  5. JUSTIFICACIÓN METODOLÓGICA: Vincular métodos a objetivos. Explicar por qué el método es apropiado.
+  6. FILTRO DE ORIGINALIDAD (Anti-Provincialismo): Si el estudio es local, añadir párrafo sobre "Implicaciones más amplias" o "Generalizabilidad" para audiencia internacional.
+  7. CIRUGÍA DE TEXTO: Eliminar redundancias, contenido vacío y retórica excesiva. Estructura: Afirmación -> Evidencia -> Explicación.
+  8. CONCLUSIONES CON IMPACTO: Respuesta directa a objetivos. Síntesis de hallazgos. Relevancia en el contexto. Limitación y futura línea.
+
+  INSTRUCCIÓN PARA q1Validation:
+  Debes completar el array "q1Validation" evaluando CADA UNO de los 8 puntos del PROTOCOLO DE VALIDACIÓN arriba mencionados. 
+  - criterion: El nombre del criterio (ej: "Análisis de Título", "Escaneo del Resumen", etc.)
+  - status: "pass" si se cumple perfectamente, "warning" si es mejorable, "fail" si falta o es deficiente.
+  - feedback: Una explicación breve de por qué tiene ese estado y qué se ha hecho o falta por hacer.
+
   6. AUTO-EVALUACIÓN Y CONSEJOS (CHECKLIST DE ALTO IMPACTO):
      Evalúa el manuscrito contra este checklist. Si algún punto NO se cumple o falta información en el TFG, genera un consejo en "userMessages".
      
@@ -208,11 +232,23 @@ export async function generateArticle(tfgText: string, journalRules: JournalRule
             }
           },
           coverLetter: { type: Type.STRING },
+          q1Validation: {
+            type: Type.ARRAY,
+            items: {
+              type: Type.OBJECT,
+              properties: {
+                criterion: { type: Type.STRING },
+                status: { type: Type.STRING, enum: ['pass', 'fail', 'warning'] },
+                feedback: { type: Type.STRING }
+              },
+              required: ['criterion', 'status', 'feedback']
+            }
+          },
           checklist: { type: Type.ARRAY, items: { type: Type.STRING } },
           userMessages: { type: Type.ARRAY, items: { type: Type.STRING } },
           diagnosis: { type: Type.STRING },
         },
-        required: ["title", "titleProposals", "authorMetadata", "abstract", "keywords", "atAGlance", "introduction", "methods", "results", "discussion", "conclusions", "references", "visualInventory", "coverLetter", "checklist", "userMessages", "diagnosis"],
+        required: ["title", "titleProposals", "authorMetadata", "abstract", "keywords", "atAGlance", "introduction", "methods", "results", "discussion", "conclusions", "references", "visualInventory", "coverLetter", "q1Validation", "checklist", "userMessages", "diagnosis"],
       },
     },
   });
@@ -227,11 +263,12 @@ export async function refineArticle(currentArticle: string, instructions: string
   CRITICAL RULES:
   1. ADAPTACIÓN ESTRICTA A LA REVISTA: Maintain strict adherence to the journal rules for "${journalRules.name}".
   2. RIGOR CIENTÍFICO Y ESTADÍSTICO (NIVEL Q1): Ensure high academic standards. Apply the Q1 High-Impact Pillars (Narrative/GAP, Transparency, Visual Impact, Active Voice, CRediT). Ensure the "STATISTICAL SUMMARY TABLE" is present in both Methods and the Tables section.
-  3. AUTO-EVALUACIÓN Y CONSEJOS (CHECKLIST DE ALTO IMPACTO): Evalúa el manuscrito contra el checklist. Si faltan elementos o el TFG no los proporciona, genera consejos en "userMessages".
-  4. NO HTML TAGS: Do NOT use any HTML tags in any text field.
-  5. VISUAL INVENTORY: Update the visual inventory if the instructions affect tables or figures. Include page numbers for figures (or "crear figura").
-  6. METHODS FORMAT: Use new lines for subsections (e.g., STUDY POPULATION:\n[Text]).
-  7. BIBLIOGRAPHY: Extract ALL references. Use the format "1- [Reference text]" on new lines.
+  3. PROTOCOLO DE VALIDACIÓN PARA REVISTAS Q1 (CHECKLIST DEL REVISOR): Actúa como un REVISOR SEVERO. Evalúa Título (precisión), Abstract (gancho/datos), GAP (hueco de conocimiento), Objetivos (explícitos), Justificación Metodológica, Originalidad (anti-provincialismo), Cirugía de Texto (concisión) y Conclusiones con impacto. Debes poblar el campo "q1Validation" con esta evaluación detallada (criterion, status, feedback).
+  4. AUTO-EVALUACIÓN Y CONSEJOS (CHECKLIST DE ALTO IMPACTO): Evalúa el manuscrito contra el checklist. Si faltan elementos o el TFG no los proporciona, genera consejos en "userMessages".
+  5. NO HTML TAGS: Do NOT use any HTML tags in any text field.
+  6. VISUAL INVENTORY: Update the visual inventory if the instructions affect tables or figures. Include page numbers for figures (or "crear figura").
+  7. METHODS FORMAT: Use new lines for subsections (e.g., STUDY POPULATION:\n[Text]).
+  8. BIBLIOGRAPHY: Extract ALL references. Use the format "1- [Reference text]" on new lines.
   
   Current Article: ${currentArticle.substring(0, 20000)}...`;
 
@@ -275,11 +312,23 @@ export async function refineArticle(currentArticle: string, instructions: string
             }
           },
           coverLetter: { type: Type.STRING },
+          q1Validation: {
+            type: Type.ARRAY,
+            items: {
+              type: Type.OBJECT,
+              properties: {
+                criterion: { type: Type.STRING },
+                status: { type: Type.STRING, enum: ['pass', 'fail', 'warning'] },
+                feedback: { type: Type.STRING }
+              },
+              required: ['criterion', 'status', 'feedback']
+            }
+          },
           checklist: { type: Type.ARRAY, items: { type: Type.STRING } },
           userMessages: { type: Type.ARRAY, items: { type: Type.STRING } },
           diagnosis: { type: Type.STRING },
         },
-        required: ["title", "titleProposals", "authorMetadata", "abstract", "keywords", "atAGlance", "introduction", "methods", "results", "discussion", "conclusions", "references", "visualInventory", "coverLetter", "checklist", "userMessages", "diagnosis"],
+        required: ["title", "titleProposals", "authorMetadata", "abstract", "keywords", "atAGlance", "introduction", "methods", "results", "discussion", "conclusions", "references", "visualInventory", "coverLetter", "q1Validation", "checklist", "userMessages", "diagnosis"],
       },
     },
   });
