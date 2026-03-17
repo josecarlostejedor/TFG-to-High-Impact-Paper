@@ -53,134 +53,134 @@ export interface TransformationResult {
 }
 
 const getQ1Modules = (journalName: string) => `
-  MÓDULO: RESULTADOS DE ALTO IMPACTO (ESTÁNDAR Q1):
-  Los resultados son el núcleo de la evidencia. Deben ser claros, precisos y no redundantes.
-  1. PRINCIPIO DE NO-REDUNDANCIA: El texto debe INTERPRETAR los datos, no repetir los números que ya están en las tablas o figuras. Evitar duplicidades innecesarias.
-  2. SELECCIÓN DE FORMATO (APA 7 / Q1):
-     - Texto plano: Para hallazgos simples (1-2 datos).
-     - Tablas: Para comparaciones complejas, demografía y modelos estadísticos.
-     - Figuras/Gráficos: Para tendencias, distribuciones y relaciones visuales.
-  3. CREACIÓN PROACTIVA Y RIGOR ESTADÍSTICO: Si el TFG carece de tablas o gráficos pero los datos lo permiten, DEBES crear propuestas de tablas/figuras nuevas. Es OBLIGATORIO incluir estadísticos de dispersión y precisión (IC95%, DE, Error Estándar) en el reporte de los hallazgos principales para elevar la calidad científica.
-  4. FLUJO NARRATIVO: Organizar los resultados siguiendo la lógica de los objetivos. Cada párrafo debe invocar a su tabla/figura correspondiente (Ej: "Como se muestra en la Tabla 1...").
+  MODULE: HIGH-IMPACT RESULTS (Q1 STANDARD):
+  Results are the core of the evidence. They must be clear, precise, and non-redundant.
+  1. NON-REDUNDANCY PRINCIPLE: The text must INTERPRET the data, not repeat the numbers already in tables or figures. Avoid unnecessary duplications.
+  2. FORMAT SELECTION (APA 7 / Q1):
+     - Plain text: For simple findings (1-2 data points).
+     - Tables: For complex comparisons, demographics, and statistical models.
+     - Figures/Graphs: For trends, distributions, and visual relationships.
+  3. PROACTIVE CREATION AND STATISTICAL RIGOR: If the TFG lacks explicit tables or graphics but the data allows it, you MUST create new table/figure proposals. It is MANDATORY to include dispersion and precision statistics (95% CI, SD, Standard Error) when reporting main findings to elevate scientific quality.
+  4. NARRATIVE FLOW: Organize results following the logic of the objectives. Each paragraph must invoke its corresponding table/figure (e.g., "As shown in Table 1...").
 
-  MÓDULO: INTEGRIDAD Y ESTÁNDARES FORMALES (ESTÁNDAR Q1):
-  El manuscrito debe demostrar transparencia absoluta y adherencia a estándares internacionales de reporte y ética.
-  1. DIRECTRICES DE REPORTE (EQUATOR NETWORK):
-     Es obligatorio identificar el diseño del estudio y declarar la adherencia a la directriz específica:
-     - Ensayos clínicos: CONSORT.
-     - Estudios observacionales (transversales, cohortes, casos y controles): STROBE.
-     - Revisiones sistemáticas: PRISMA.
-     - Otros diseños: Consultar el repositorio de Equator Network.
-  2. TRANSPARENCIA ÉTICA Y REGISTRO:
-     - Mencionar explícitamente el visto bueno del Comité de Ética de Investigación.
-     - Confirmar la obtención de consentimientos informados de todos los participantes.
-     - En estudios experimentales, incluir el registro obligatorio (ej. ClinicalTrials.gov o ISRCTN Register).
-     - Declaración de conflicto de intereses: Recopilar y declarar la situación de todos los autores.
-  3. DOCUMENTACIÓN DE APOYO Y REPRODUCIBILIDAD:
-     - Mencionar la disponibilidad de material relevante: protocolo de investigación, base de datos, salida de resultados, cuaderno de recogida de datos o publicaciones relacionadas.
-     - Indicar en la sección de Métodos o Agradecimientos cómo se puede consultar esta documentación para garantizar la transparencia del proceso.
+  MODULE: INTEGRITY AND FORMAL STANDARDS (Q1 STANDARD):
+  The manuscript must demonstrate absolute transparency and adherence to international reporting and ethical standards.
+  1. REPORTING GUIDELINES (EQUATOR NETWORK):
+     It is mandatory to identify the study design and declare adherence to the specific guideline:
+     - Clinical trials: CONSORT.
+     - Observational studies (cross-sectional, cohort, case-control): STROBE.
+     - Systematic reviews: PRISMA.
+     - Other designs: Consult the Equator Network repository.
+  2. ETHICAL TRANSPARENCY AND REGISTRATION:
+     - Explicitly mention the approval from the Research Ethics Committee.
+     - Confirm obtaining informed consent from all participants.
+     - In experimental studies, include the mandatory registration (e.g., ClinicalTrials.gov or ISRCTN Register).
+     - Conflict of Interest Statement: Collect and declare the status of all authors.
+  3. SUPPORTING DOCUMENTATION AND REPRODUCIBILITY:
+     - Mention the availability of relevant material: research protocol, database, results output, data collection notebook, or related publications.
+     - Indicate in the Methods or Acknowledgments section how this documentation can be consulted to guarantee the transparency of the process.
 
-  MÓDULO: DISCUSIÓN INTERPRETATIVA (ESTÁNDAR Q1):
-  La Discusión es el culmen del proceso de investigación en su fase interpretativa. Su finalidad es interpretar los hallazgos en función del conocimiento previo y determinar si se modifica dicho conocimiento.
-  1. SECUENCIA ESTRUCTURADA OBLIGATORIA:
-     a) Recapitulación: Hallazgos principales que constituyen la respuesta a la pregunta principal (sin repetir números de resultados).
-     b) Validez Interna y Limitaciones: Balance honesto de puntos fuertes y débiles.
-     c) Comparación: Contrastar resultados con otros trabajos de diseño y metodología similares.
-     d) Validez Externa: Grado de generalización o extrapolación a otros contextos.
-     e) Recomendaciones y líneas futuras de investigación.
-     f) Conclusiones: Respuesta directa a los objetivos planteados en la Introducción.
-  2. REGLAS DE ORO:
-     - NO repetir los resultados.
-     - Interpretación honesta, no especulativa.
-     - Evitar revisiones de literatura desenfocadas o excesivamente largas.
-     - Evitar especulación excesiva sobre hallazgos secundarios.
+  MODULE: INTERPRETATIVE DISCUSSION (Q1 STANDARD):
+  The Discussion is the culmination of the research process in its interpretative phase. Its purpose is to interpret the findings based on previous knowledge and determine if said knowledge is modified.
+  1. MANDATORY STRUCTURED SEQUENCE:
+     a) Recapitulation: Main findings that constitute the answer to the main question (without repeating result numbers).
+     b) Internal Validity and Limitations: Honest balance of strengths and weaknesses.
+     c) Comparison: Contrast results with other works of similar design and methodology.
+     d) External Validity: Degree of generalization or extrapolation to other contexts.
+     e) Recommendations and future lines of research.
+     f) Conclusions: Direct answer to the objectives set in the Introduction.
+  2. GOLDEN RULES:
+     - DO NOT repeat the results.
+     - Honest, non-speculative interpretation.
+     - Avoid unfocused or excessively long literature reviews.
+     - Avoid excessive speculation on secondary findings.
 
-  MÓDULO: MÉTODOS DE REPRODUCIBILIDAD TOTAL (ESTÁNDAR Q1):
-  También denominado "Material y método", su función es presentar la metodología con detalle quirúrgico para garantizar el principio de reproducibilidad. Es el apartado más evaluado por los revisores.
-  1. ESTRUCTURA LÓGICA Y ORDENADA:
-     - Diseño: Tipo de estudio.
-     - Ámbito y periodo de estudio: Dónde y cuándo.
-     - Población de estudio: Definición, criterios de inclusión y exclusión.
-     - Muestra: Cálculo del tamaño muestral y selección de sujetos.
-     - Procedimientos: Fuentes de información e intervenciones (si aplica).
-     - Instrumentos: Herramientas de medición utilizadas.
-     - Variables: Definición clara de dependientes e independientes.
-     - Aspectos Éticos: Aprobaciones y cumplimiento normativo.
-     - Plan Estadístico: Detalle exhaustivo del análisis.
-  2. REGLA DE ORO: Si el estudio se basa en un protocolo publicado previamente, debe citarse el "artículo de protocolo" y presentar el método de forma breve.
+  MODULE: TOTAL REPRODUCIBILITY METHODS (Q1 STANDARD):
+  Also called "Material and Methods", its function is to present the methodology with surgical detail to guarantee the principle of reproducibility. It is the section most evaluated by reviewers.
+  1. LOGICAL AND ORDERED STRUCTURE:
+     - Design: Type of study.
+     - Setting and study period: Where and when.
+     - Study population: Definition, inclusion and exclusion criteria.
+     - Sample: Sample size calculation and subject selection.
+     - Procedures: Information sources and interventions (if applicable).
+     - Instruments: Measurement tools used.
+     - Variables: Clear definition of dependent and independent variables.
+     - Ethical Aspects: Approvals and regulatory compliance.
+     - Statistical Plan: Exhaustive detail of the analysis.
+  2. GOLDEN RULE: If the study is based on a previously published protocol, the "protocol article" must be cited and the method presented briefly.
 
-  MÓDULO: INTRODUCCIÓN ESTRATÉGICA (ESTÁNDAR Q1):
-  La introducción es la carta de presentación del artículo ante editores, revisores y lectores. Su objeto es contextualizar y justificar el estudio.
-  1. ESTRUCTURA OBLIGATORIA:
-     a) Definición y antecedentes: Antecedentes claros del problema estudiado.
-     b) Marco teórico: Si lo hubiese, integrarlo de forma coherente.
-     c) Variables clave: Definición precisa de las variables de estudio.
-     d) Justificación, importancia y alcance: Explicar por qué es relevante y cuál es su impacto.
-     e) Objetivos e Hipótesis: Declaración explícita al final (hipótesis obligatoria en diseños analíticos).
-  2. ESTILO Y RIGOR:
-     - Brevedad y precisión: Similar a los antecedentes de un protocolo pero más conciso.
-     - Evidencia actual: Priorizar el uso de revisiones sistemáticas recientes.
-     - Citas estratégicas: Las referencias deben ser las justas y estar vinculadas directamente a los objetivos e hipótesis.
+  MODULE: STRATEGIC INTRODUCTION (Q1 STANDARD):
+  The introduction is the cover letter of the article to editors, reviewers, and readers. Its purpose is to contextualize and justify the study.
+  1. MANDATORY STRUCTURE:
+     a) Definition and background: Clear background of the problem studied.
+     b) Theoretical framework: If any, integrate it coherently.
+     c) Key variables: Precise definition of the study variables.
+     d) Justification, importance, and scope: Explain why it is relevant and what its impact is.
+     e) Objectives and Hypotheses: Explicit statement at the end (mandatory hypothesis in analytical designs).
+  2. STYLE AND RIGOR:
+     - Brevity and precision: Similar to the background of a protocol but more concise.
+     - Current evidence: Prioritize the use of recent systematic reviews.
+     - Strategic citations: References should be just enough and directly linked to objectives and hypotheses.
 
-  MÓDULO: CONCLUSIONES DE ALTO IMPACTO (ESTÁNDAR Q1):
-  Las conclusiones sintetizan los resultados en función de los objetivos trazados.
-  1. REGLA DE ORO (ALINEACIÓN): Las conclusiones se construyen con los resultados obtenidos, pero SIEMPRE alineados a los objetivos del estudio.
-  2. ESTRUCTURA OBLIGATORIA Y ORDEN (a, b, c) - USAR ETIQUETAS EXPLÍCITAS:
-     a) Conclusión General: Señalar la conclusión general alineada al cumplimiento del objetivo general, incluyendo el resultado principal.
-     b) Resultados Principales: Señalar los hallazgos relacionados con los objetivos específicos.
-     c) Aportes, Beneficios y Futuro: Resaltar aportes y beneficios de los resultados (tanto generales como específicos). Incluir 1-2 recomendaciones de trabajo futuro. Mencionar limitaciones (aquello que no se haya podido demostrar) para guiar a otros investigadores.
-  3. RESTRICCIONES CRÍTICAS:
-     - Prohibido incorporar elementos no tratados en la investigación.
-     - No utilizar el marco teórico para reforzar los resultados.
-     - No exponer la importancia personal o juicios de valor sobre los resultados.
+  MODULE: HIGH-IMPACT CONCLUSIONS (Q1 STANDARD):
+  Conclusions synthesize the results based on the objectives set.
+  1. GOLDEN RULE (ALIGNMENT): Conclusions are built with the results obtained, but ALWAYS aligned with the study objectives.
+  2. MANDATORY STRUCTURE AND ORDER (a, b, c) - USE EXPLICIT LABELS:
+     a) General Conclusion: Point out the general conclusion aligned with the fulfillment of the general objective, including the main result.
+     b) Main Results: Point out the findings related to the specific objectives.
+     c) Contributions, Benefits, and Future: Highlight contributions and benefits of the results (both general and specific). Include 1-2 recommendations for future work. Mention limitations (what could not be proven) to guide other researchers.
+  3. CRITICAL RESTRICTIONS:
+     - Forbidden to incorporate elements not treated in the research.
+     - Do not use the theoretical framework to reinforce results.
+     - Do not express personal importance or value judgments about the results.
 
-  MÓDULO: EXTENSIÓN Y PROFUNDIDAD EDITORIAL (ESTÁNDAR ELSEVIER/Q1):
-  Para alcanzar el estándar de las mejores revistas de Elsevier, el artículo debe tener una densidad y profundidad académica superior.
-  1. OBJETIVO DE EXTENSIÓN:
-     - Abstract: 1 párrafo denso y estructurado.
-     - Introducción: 1.5 a 2 páginas (aprox. 800-1000 palabras). Debe ser un embudo perfecto de evidencia.
-     - Metodología: 2 a 4 páginas (aprox. 1000-1500 palabras). Detalle quirúrgico.
-     - Resultados y Discusión: 10 a 12 páginas (aprox. 4000-5000 palabras). Es el corazón del artículo.
-     - Conclusiones: 1 a 2 páginas (aprox. 500-800 palabras).
-  2. DENSIDAD DE EVIDENCIA:
-     - Gráficos: Apuntar a 6-8 elementos visuales de alto impacto.
-     - Tablas: Entre 1 y 3 tablas complejas y profesionales.
-     - Referencias: Entre 20 y 50 referencias de alto impacto (Scopus/WoS), priorizando los últimos 5 años.
-  3. REGLA DE ORO: No se trata de "rellenar", sino de expandir el análisis, profundizar en los mecanismos explicativos en la discusión y detallar cada paso del proceso en métodos.
+  MODULE: EDITORIAL EXTENSION AND DEPTH (ELSEVIER/Q1 STANDARD):
+  To reach the standard of the best Elsevier journals, the article must have superior density and academic depth.
+  1. EXTENSION OBJECTIVE:
+     - Abstract: 1 dense and structured paragraph.
+     - Introduction: 1.5 to 2 pages (approx. 800-1000 words). It must be a perfect funnel of evidence.
+     - Methodology: 2 to 4 pages (approx. 1000-1500 words). Surgical detail.
+     - Results and Discussion: 10 to 12 pages (approx. 4000-5000 words). It is the heart of the article.
+     - Conclusions: 1 to 2 pages (approx. 500-800 words).
+  2. EVIDENCE DENSITY:
+     - Graphics: Aim for 6-8 high-impact visual elements.
+     - Tables: Between 1 and 3 complex and professional tables.
+     - References: Between 20 and 50 high-impact references (Scopus/WoS), prioritizing the last 5 years.
+  3. GOLDEN RULE: It's not about "filling", but about expanding the analysis, deepening the explanatory mechanisms in the discussion, and detailing each step of the process in methods.
 
-  MÓDULO: COVER LETTER PERSUASIVA (ESTÁNDAR Q1):
-  La carta de presentación (cover letter) es una herramienta estratégica para persuadir al editor sobre el alcance e importancia de la contribución. No debe ser una plantilla estándar ni repetir el resumen.
-  1. TONO Y ESTILO:
-     - Tono algo más informal que la redacción científica (comunicación directa con el editor).
-     - Contenido conciso: 2-3 párrafos máximo.
-     - Individualización total: Adecuar el mensaje específicamente a la revista "${journalName}".
-  2. ESTRUCTURA Y CONTENIDO:
-     - Datos Formales: Incluir título, autores, extensión del artículo, número de tablas y figuras.
-     - Declaración Ética: Declaración formal de que es una aportación inédita y no ha sido enviada a otra revista.
-     - Defensa de Fortalezas: Subrayar la originalidad del trabajo y qué aporta de nuevo a la disciplina.
-     - Idoneidad de la Revista: Explicar por qué "${journalName}" es el lugar ideal. Es muy recomendable hacer referencia a artículos similares publicados recientemente en esta misma revista para demostrar alineación con su línea editorial.
-  3. OBJETIVO: Marcar la diferencia para que el editor decida enviar el trabajo a revisión en lugar de rechazarlo inicialmente.
+  MODULE: PERSUASIVE COVER LETTER (Q1 STANDARD):
+  The cover letter is a strategic tool to persuade the editor about the scope and importance of the contribution. It should not be a standard template or repeat the abstract.
+  1. TONE AND STYLE:
+     - Somewhat more informal tone than scientific writing (direct communication with the editor).
+     - Concise content: 2-3 paragraphs maximum.
+     - Total individualization: Adapt the message specifically to the journal "${journalName}".
+  2. STRUCTURE AND CONTENT:
+     - Formal Data: Include title, authors, article length, number of tables and figures.
+     - Ethical Statement: Formal statement that it is an unpublished contribution and has not been sent to another journal.
+     - Defense of Strengths: Highlight the originality of the work and what it brings new to the discipline.
+     - Suitability of the Journal: Explain why "${journalName}" is the ideal place. It is highly recommended to refer to similar articles recently published in this same journal to demonstrate alignment with its editorial line.
+  3. OBJECTIVE: Make a difference so the editor decides to send the work for review instead of rejecting it initially.
   
-  MÓDULO: INVENTARIO VISUAL INTELIGENTE Y RESULTADOS (ESTÁNDAR Q1):
-  Fase 4.1: Ingeniería de la Presentación Visual y Desarrollo de Resultados.
-  El apartado de Resultados es crucial y debe ser desarrollado exhaustivamente sin redundancias. Debes actuar como un editor gráfico y científico siguiendo el estilo APA 7.
+  MODULE: INTELLIGENT VISUAL INVENTORY AND RESULTS (Q1 STANDARD):
+  Phase 4.1: Visual Presentation Engineering and Results Development.
+  The Results section is crucial and must be developed exhaustively without redundancies. You must act as a graphic and scientific editor following the APA 7 style.
   
-  Sigue estrictamente estas directrices:
-  1. DIAGNÓSTICO Y CREACIÓN SINTÉTICA:
-     - Si el TFG contiene información dispersa, debes diseñar la estrategia de presentación óptima.
-     - CRÍTICO: Si el TFG NO tiene tablas o gráficos explícitos, DEBES CREARLOS. Sintetiza los datos clave del texto en una "Tabla de Hallazgos Principales" o un "Gráfico de Tendencias" (representación en texto) e inclúyelos en la pestaña de Tablas. No dejes el artículo sin apoyo visual.
-  2. PRINCIPIO DE NO REDUNDANCIA Y APA 7:
-     - Evita duplicidades: No repitas en el texto lo que ya está en las tablas/figuras. El texto debe INTERPRETAR, no visualizar.
-     - Estilo APA 7: Organización impecable de la información estadística. Evita el uso excesivo o sobredimensionado de elementos; cada uno debe ser esencial.
-  3. DESARROLLO DE LA SECCIÓN RESULTADOS:
-     - No debe ser escaso. Debe ser un desarrollo riguroso y detallado de los hallazgos vinculados a los objetivos.
-     - Usa TEXTO para narrar la lógica y destacar hitos.
-     - Usa TABLAS para datos exactos y comparaciones múltiples (Isla de información autosuficiente).
-     - Usa GRÁFICOS para revelar tendencias y comparaciones visuales de alto impacto.
-  4. CONSTRUCCIÓN DE ELEMENTOS AUTOSUFICIENTES:
-     - Cada elemento debe entenderse sin leer el texto. Títulos descriptivos (frases completas) en el pie de figura o cabecera de tabla.
-  5. FLUJO NARRATIVO:
-     - Invoca tablas y figuras en orden numérico. El texto guía al lector a través de la evidencia visual sin repetir los datos brutos.
+  Strictly follow these guidelines:
+  1. DIAGNOSIS AND SYNTHETIC CREATION:
+     - If the TFG contains scattered information, you must design the optimal presentation strategy.
+     - CRITICAL: If the TFG does NOT have explicit tables or graphics, you MUST CREATE THEM. Synthesize key data from the text into a "Main Findings Table" or a "Trend Graph" (text representation) and include them in the Tables tab. Do not leave the article without visual support.
+  2. NON-REDUNDANCY PRINCIPLE AND APA 7:
+     - Avoid duplicities: Do not repeat in the text what is already in the tables/figures. The text must INTERPRET, not visualize.
+     - APA 7 Style: Impeccable organization of statistical information. Avoid excessive or oversized use of elements; each must be essential.
+  3. RESULTS SECTION DEVELOPMENT:
+     - It should not be sparse. It must be a rigorous and detailed development of the findings linked to the objectives.
+     - Use TEXT to narrate logic and highlight milestones.
+     - Use TABLES for exact data and multiple comparisons (Self-sufficient information island).
+     - Use GRAPHS to reveal high-impact visual trends and comparisons.
+  4. CONSTRUCTION OF SELF-SUFFICIENT ELEMENTS:
+     - Each element must be understood without reading the text. Descriptive titles (full sentences) in the figure caption or table header.
+  5. NARRATIVE FLOW:
+     - Invoke tables and figures in numerical order. The text guides the reader through the visual evidence without repeating raw data.
 `;
 
 export async function analyzeTFG(tfgText: string) {
@@ -188,7 +188,9 @@ export async function analyzeTFG(tfgText: string) {
   const prompt = `Analyze the following undergraduate thesis (TFG) and extract its core components: 
   objective, methodology, key results, and main conclusions. 
   
-  SISTEMA DE DIAGNÓSTICO ESTADÍSTICO:
+  IMPORTANT: The analysis and all fields in the JSON response MUST be written in ENGLISH.
+  
+  STATISTICAL DIAGNOSIS SYSTEM:
   Identify the statistical tests used and evaluate their appropriateness. 
   Check if p-values are exact, if effect sizes are reported, and if assumptions (normality, etc.) are mentioned.
   Specifically, look for the "STATISTICAL ANALYSIS" section and evaluate if it provides enough detail for a high-impact journal.
@@ -222,87 +224,90 @@ export async function generateArticle(tfgText: string, journalRules: JournalRule
    TASK: Transform the provided Undergraduate Thesis (TFG) into a COMPREHENSIVE, DEEP, and RIGOROUS Original Research article for the journal "${journalRules.name}".
   
   CRITICAL PILLARS:
-  1. ADAPTACIÓN ESTRICTA A LA REVISTA: The manuscript must be a "tailor-made suit" for ${journalRules.name}. Apply every rule from the provided "Guide for Authors".
-  2. RIGOR CIENTÍFICO ABSOLUTO: Impeccable methodology, robust statistics, critical discussion. Identify and address weaknesses.
+  1. STRICT ADAPTATION TO THE JOURNAL: The manuscript must be a "tailor-made suit" for ${journalRules.name}. Apply every rule from the provided "Guide for Authors".
+  2. ABSOLUTE SCIENTIFIC RIGOR: Impeccable methodology, robust statistics, critical discussion. Identify and address weaknesses.
   3. NO HTML TAGS: Do NOT use any HTML tags like <br>, <b>, <table>, etc. in any text field. Use plain text with standard line breaks.
+  4. LANGUAGE: The entire manuscript and all fields in the JSON response MUST be written in ENGLISH. This is an absolute requirement.
   
   ${getQ1Modules(journalRules.name)}
   
-  SISTEMA DE GESTIÓN DE TABLAS E IMÁGENES:
-  1. IDENTIFICACIÓN: Create a detailed "visualInventory" of all tables and figures found in the TFG.
-  2. UBICACIÓN: Mark their recommended location in the text with placeholders like "[INSERT TABLE X]".
-  3. FORMATEO Y DATOS COMPLETOS (CRÍTICO): El campo "tables" DEBE contener la representación íntegra en formato texto (usando pipes | para columnas y filas) de TODAS las tablas identificadas (Table 1, Table 2, Table 3, etc.) ADEMÁS de la "STATISTICAL SUMMARY TABLE". No te limites a la descripción; el usuario necesita los datos brutos formateados para poder copiarlos directamente. Cada tabla debe estar claramente separada por su título.
+  TABLE AND IMAGE MANAGEMENT SYSTEM:
+  1. IDENTIFICATION: Create a detailed "visualInventory" of all tables and figures found in the TFG.
+  2. LOCATION: Mark their recommended location in the text with placeholders like "[INSERT TABLE X]".
+  3. FORMATTING AND FULL DATA (CRITICAL): The "tables" field MUST contain the full text representation (using pipes | for columns and rows) of ALL identified tables (Table 1, Table 2, Table 3, etc.) PLUS the "STATISTICAL SUMMARY TABLE". Do not limit yourself to the description; the user needs the formatted raw data so they can copy it directly. Each table must be clearly separated by its title.
   4. PAGE NUMBERS: For each figure, identify the page number where it appears in the original TFG. If it's a new figure that needs to be created, set the page number to "crear figura".
   
-  SISTEMA AVANZADO DE ANÁLISIS ESTADÍSTICO CON TABLA RESUMEN PROFESIONAL:
-  1. EXTRACCIÓN Y CLASIFICACIÓN: Identificar TODAS las pruebas estadísticas (paramétricas/no paramétricas), variables (dependientes/independientes), estadísticos (t, F, U, χ²), gl, valores p exactos, tamaños del efecto (Cohen's d, η², V de Cramer) e IC95%. Identificar software y versión.
-  2. INTEGRACIÓN EN MÉTODOS Y TABLAS: El apartado "STATISTICAL ANALYSIS" dentro de "METHODS" debe ser extenso y detallado. Al final de este apartado, DEBES incluir una tabla resumen en formato texto (usando pipes | para las columnas y filas). ADEMÁS, incluye esta misma "STATISTICAL SUMMARY TABLE" al principio del campo "tables" para que sea visible en la sección de tablas, seguida de los datos de todas las demás tablas del inventario.
-  3. VERIFICACIÓN Y CÁLCULO: Validar la coherencia prueba-variable. Si faltan tamaños del efecto, CALCULARLOS (t-test -> d=2t/√gl; ANOVA -> η²=F·gl_e/(F·gl_e+gl_d); Chi-sq -> V=√(χ²/(n·min(k-1,r-1)))).
-  4. REPORTE EN RESULTADOS: Reporte riguroso en Resultados con estadísticos completos.
+  ADVANCED STATISTICAL ANALYSIS SYSTEM WITH PROFESSIONAL SUMMARY TABLE:
+  1. EXTRACTION AND CLASSIFICATION: Identify ALL statistical tests (parametric/non-parametric), variables (dependent/independent), statistics (t, F, U, χ²), df, exact p-values, effect sizes (Cohen's d, η², Cramer's V), and 95% CI. Identify software and version.
+  2. INTEGRATION IN METHODS AND TABLES: The "STATISTICAL ANALYSIS" section within "METHODS" must be extensive and detailed. At the end of this section, you MUST include a summary table in text format (using pipes | for columns and rows). ALSO, include this same "STATISTICAL SUMMARY TABLE" at the beginning of the "tables" field so it is visible in the tables section, followed by the data of all other tables in the inventory.
+  3. VERIFICATION AND CALCULATION: Validate the test-variable consistency. If effect sizes are missing, CALCULATE them (t-test -> d=2t/√df; ANOVA -> η²=F·df_e/(F·df_e+df_d); Chi-sq -> V=√(χ²/(n·min(k-1,r-1)))).
+  4. REPORTING IN RESULTS: Rigorous reporting in Results with complete statistics.
   
-  MEJORAS CRÍTICAS PARA ALTO IMPACTO (Nivel Q1):
-  1. RELEVANCIA Y NARRATIVA (STORYTELLING):
-     - Identificar explícitamente el "GAP" (hueco de conocimiento) y el "HOOK" (gancho) en el Abstract e Introducción.
-     - Transformar la Pregunta de Investigación en el eje central del Abstract.
-     - Títulos SEO/Académicos: Generar propuestas cortas, descriptivas y con palabras clave de alto impacto (Scopus/WoS).
-  2. RIGOR Y TRANSPARENCIA (TRUST FACTOR):
-     - Declaración de Disponibilidad de Datos: Incluir en "acknowledgments" o al final de "methods" cómo acceder a los datos.
-     - Limitaciones del Estudio: No esconder defectos; discutirlos honestamente en una subsección de la Discusión.
-     - Criterios de INCLUSIÓN/EXCLUSIÓN: Obligatorios en la sección de Métodos para garantizar reproducibilidad.
-  3. IMPACTO VISUAL AVANZADO (Q1):
-     - Aplicar el Módulo de Inventario Visual Inteligente: Diagnóstico de formato, no-redundancia y elementos autosuficientes.
-     - Tabla 1 (Baseline): La primera tabla debe ser siempre la de características basales/demográficas de la muestra.
-     - Leyendas: Deben ser descriptivas y completas, permitiendo la comprensión independiente del elemento.
-  4. IDIOMA, ESTILO Y LEGIBILIDAD (CRÍTICO - PUNTOS Y APARTE):
-     - PUNTOS Y APARTE OBLIGATORIOS: Es una exigencia absoluta usar puntos y aparte con frecuencia. NO generes bloques de texto densos o pegados. Cada idea principal o sección lógica DEBE tener su propio párrafo separado por un salto de línea doble (\n\n). Esto es vital para la legibilidad tanto en la interfaz como en el documento Word final. Si un apartado tiene más de 150 palabras, debe estar dividido en al menos 2 o 3 párrafos.
-     - Preferencia por Voz Activa: Cambiar "It was found" por "We found" o "The results reveal".
-     - Vocabulario Técnico: Usar terminología formal (ej. "examine" en lugar de "look at").
-     - Consistencia: Mantener el mismo término para un concepto en todo el artículo (ej. no mezclar "subjects" and "participants").
-  5. VALIDACIÓN EDITORIAL Y ÉTICA:
-     - Contribuciones CRediT: Generar el párrafo detallado en "creditStatement".
-     - Conflicto de Intereses: Incluir declaración estándar en "acknowledgments".
-     - Extensión: Ajustar a 3000-5000 palabras, expandiendo el contenido del TFG con profundidad académica.
-     - Cover Letter Q1: Aplicar el módulo de Cover Letter Persuasiva para defender la importancia del estudio ante el editor.
+  CRITICAL IMPROVEMENTS FOR HIGH IMPACT (Q1 Level):
+  1. RELEVANCE AND NARRATIVE (STORYTELLING):
+     - Explicitly identify the "GAP" (knowledge gap) and the "HOOK" (hook) in the Abstract and Introduction.
+     - Transform the Research Question into the central axis of the Abstract.
+     - SEO/Academic Titles: Generate short, descriptive proposals with high-impact keywords (Scopus/WoS).
+  2. RIGOR AND TRANSPARENCY (TRUST FACTOR):
+     - Data Availability Statement: Include in "acknowledgments" or at the end of "methods" how to access the data.
+     - Study Limitations: Do not hide flaws; discuss them honestly in a subsection of the Discussion.
+     - INCLUSION/EXCLUSION Criteria: Mandatory in the Methods section to guarantee reproducibility.
+  3. ADVANCED VISUAL IMPACT (Q1):
+     - Apply the Intelligent Visual Inventory Module: Format diagnosis, non-redundancy, and self-sufficient elements.
+     - Table 1 (Baseline): The first table must always be the sample's baseline/demographic characteristics.
+     - Legends: Must be descriptive and complete, allowing independent understanding of the element.
+  4. LANGUAGE, STYLE, AND READABILITY (CRITICAL - PARAGRAPH BREAKS):
+     - MANDATORY PARAGRAPH BREAKS: It is an absolute requirement to use paragraph breaks frequently. DO NOT generate dense or stuck blocks of text. Each main idea or logical section MUST have its own paragraph separated by a double line break (\n\n). This is vital for readability both in the interface and in the final Word document. If a section has more than 150 words, it must be divided into at least 2 or 3 paragraphs.
+     - Preference for Active Voice: Change "It was found" to "We found" or "The results reveal".
+     - Technical Vocabulary: Use formal terminology (e.g., "examine" instead of "look at").
+     - Consistency: Maintain the same term for a concept throughout the article (e.g., do not mix "subjects" and "participants").
+  5. EDITORIAL AND ETHICAL VALIDATION:
+     - CRediT Contributions: Generate the detailed paragraph in "creditStatement".
+     - Conflict of Interest: Include standard statement in "acknowledgments".
+     - Length: Adjust to 3000-5000 words, expanding the TFG content with academic depth.
+     - Cover Letter Q1: Apply the Persuasive Cover Letter module to defend the importance of the study before the editor.
   
-  PROTOCOLO DE VALIDACIÓN PARA REVISTAS Q1 (CHECKLIST DEL REVISOR):
-  Eres un asistente experto en publicaciones de alto impacto. Antes de dar por finalizado el artículo, debes actuar como un REVISOR SEVERO PERO CONSTRUCTIVO. Revisa el borrador del artículo y aplícale los siguientes filtros de calidad de forma iterativa. Si encuentras que algún punto no se cumple, debes reescribir o sugerir al usuario (mediante comentarios entre corchetes [ ]) los cambios necesarios para alcanzar el estándar Q1.
+  VALIDATION PROTOCOL FOR Q1 JOURNALS (REVIEWER CHECKLIST):
+  You are an expert assistant in high-impact publications. Before finalizing the article, you must act as a SEVERE BUT CONSTRUCTIVE REVIEWER. Review the draft of the article and apply the following quality filters iteratively. If you find that any point is not met, you must rewrite or suggest to the user (using comments in brackets [ ]) the necessary changes to reach the Q1 standard.
 
-  1. ANÁLISIS DE TÍTULO (Precisión vs. Ambigüedad): Evalúa si el título refleja con precisión el alcance o es demasiado genérico. Si es vago, reescríbelo para incluir ámbito, población o variable principal.
-  2. ESCANEO DEL RESUMEN (Concisión y Gancho): Debe contener Propósito, Metodología, Resultados relevantes (datos concretos) y Conclusión. Incidir en la novedad.
-  3. CONEXIÓN CON EL ESTADO DEL ARTE: La introducción debe demostrar conocimiento y terminar con una declaración explícita del "GAP". Priorizar referencias de los últimos 3-5 años.
-  4. DECLARACIÓN EXPLÍCITA DE OBJETIVOS: Deben estar claros al final de la introducción: "Para abordar esta cuestión, este estudio tiene como objetivo...".
-  5. JUSTIFICACIÓN METODOLÓGICA: Vincular métodos a objetivos. Explicar por qué el método es apropiado.
-  6. FILTRO DE ORIGINALIDAD (Anti-Provincialismo): Si el estudio es local, añadir párrafo sobre "Implicaciones más amplias" o "Generalizabilidad" para audiencia internacional.
-  7. CIRUGÍA DE TEXTO: Eliminar redundancias, contenido vacío y retórica excesiva. Estructura: Afirmación -> Evidencia -> Explicación.
-  8. CONCLUSIONES CON IMPACTO: Respuesta directa a objetivos. Síntesis de hallazgos. Relevancia en el contexto. Limitación y futura línea.
+  1. TITLE ANALYSIS (Precision vs. Ambiguity): Evaluate if the title accurately reflects the scope or is too generic. If it is vague, rewrite it to include scope, population, or main variable.
+  2. ABSTRACT SCAN (Conciseness and Hook): It must contain Purpose, Methodology, Relevant Results (concrete data), and Conclusion. Focus on novelty.
+  3. CONNECTION WITH THE STATE OF THE ART: The introduction must demonstrate knowledge and end with an explicit statement of the "GAP". Prioritize references from the last 3-5 years.
+  4. EXPLICIT STATEMENT OF OBJECTIVES: They must be clear at the end of the introduction: "To address this question, this study aims to...".
+  5. METHODOLOGICAL JUSTIFICATION: Link methods to objectives. Explain why the method is appropriate.
+  6. ORIGINALITY FILTER (Anti-Provincialism): If the study is local, add a paragraph on "Broader Implications" or "Generalizability" for an international audience.
+  7. TEXT SURGERY: Eliminate redundancies, empty content, and excessive rhetoric. Structure: Claim -> Evidence -> Explanation.
+  8. IMPACTFUL CONCLUSIONS: Direct answer to objectives. Synthesis of findings. Relevance in context. Limitation and future line.
 
-  INSTRUCCIÓN PARA q1Validation:
-  Debes completar el array "q1Validation" evaluando CADA UNO de los 8 puntos del PROTOCOLO DE VALIDACIÓN arriba mencionados. 
-  - criterion: El nombre del criterio (ej: "Análisis de Título", "Escaneo del Resumen", etc.)
-  - status: "pass" si se cumple perfectamente, "warning" si es mejorable, "fail" si falta o es deficiente.
-  - feedback: Una explicación breve de por qué tiene ese estado y qué se ha hecho o falta por hacer.
+  INSTRUCTION FOR q1Validation:
+  You must complete the "q1Validation" array evaluating EACH of the 8 points of the VALIDATION PROTOCOL mentioned above. 
+  - criterion: The name of the criterion (e.g., "Title Analysis", "Abstract Scan", etc.)
+  - status: "pass" if it is perfectly met, "warning" if it can be improved, "fail" if it is missing or deficient.
+  - feedback: A brief explanation of why it has that status and what has been done or needs to be done.
 
-  6. AUTO-EVALUACIÓN Y CONSEJOS (CHECKLIST DE ALTO IMPACTO):
-     Evalúa el manuscrito contra este checklist. Si algún punto NO se cumple o falta información en el TFG, genera un consejo en "userMessages".
+  6. SELF-EVALUATION AND ADVICE (HIGH-IMPACT CHECKLIST):
+     Evaluate the manuscript against this checklist. If any point is NOT met or information is missing in the TFG, generate advice in "userMessages".
      
-     NIVEL 1: CRÍTICO
-     - Título y Foco: ¿Es específico y refleja el hallazgo principal?
-     - Novedad: ¿Declara explícitamente el aporte original?
-     - Rigor Metodológico: ¿Diseño adecuado para la pregunta?
-     - Estadística: ¿Reporta p exactos, IC95% y Tamaño del Efecto? ¿Análisis multivariante?
-     - Resultados: ¿Presentación profesional y clara?
+     LEVEL 1: CRITICAL
+     - Title and Focus: Is it specific and reflects the main finding?
+     - Novelty: Does it explicitly state the original contribution?
+     - Methodological Rigor: Is the design appropriate for the question?
+     - Statistics: Does it report exact p, 95% CI, and Effect Size? Multivariate analysis?
+     - Results: Is the presentation professional and clear?
      
-     NIVEL 2: CALIDAD CIENTÍFICA
-     - Discusión: ¿Comparación cuantitativa con literatura? ¿Mecanismos explicativos?
-     - Conclusiones: ¿Basadas estrictamente en los resultados? ¿Sin sobre-extrapolación?
-     - Referencias: ¿Formato Vancouver estricto? ¿Actualizadas?
+     LEVEL 2: SCIENTIFIC QUALITY
+     - Discussion: Quantitative comparison with literature? Explanatory mechanisms?
+     - Conclusions: Strictly based on results? Without over-extrapolation?
+     - References: Strict Vancouver format? Updated?
      
-     NIVEL 3: INTEGRIDAD Y FORMATO
-     - Declaraciones: ¿Incluye Ética, Conflictos, Financiación y CRediT?
-     - Calidad Editorial: ¿Lenguaje profesional y sin errores?
-     - Cover Letter: ¿Argumenta por qué el estudio es apto para la revista?
-     - Integridad: ¿Sin plagio ni datos inconsistentes?
-  
+     LEVEL 3: INTEGRITY AND FORMAT
+     - Declarations: Includes Ethics, Conflicts, Funding, and CRediT?
+     - Editorial Quality: Professional language and error-free?
+     - Cover Letter: Argues why the study is suitable for the journal?
+     - Integrity: No plagiarism or inconsistent data?
+     
+                         
+                           
   ${journalRules.modelArticleText ? `
   ADVANCED ANALYSIS BASED ON MODEL ARTICLE:
   Analyze the provided model article to extract:
@@ -318,11 +323,11 @@ export async function generateArticle(tfgText: string, journalRules: JournalRule
   CONTENT GUIDELINES:
   - EXTENSION: Aim for 8000-10000 words total to match Elsevier's 25-30 page standard. EXPAND the TFG significantly, adding depth, context, and detailed analysis.
   - METADATA: Provide 3 title proposals. Include author normalization recommendations (IraLIS/FECYT).
-  - INTRODUCTION: Aplicar el Módulo de Introducción Estratégica. Estructura de embudo (Contexto -> Estado del Arte -> GAP -> Justificación -> Objetivos/Hipótesis). Objetivo: 800-1000 palabras.
-  - METHODS: Aplicar el Módulo de Métodos de Reproduducibilidad Total y el Módulo de Integridad y Estándares Formales. Declarar adherencia a STROBE/CONSORT según diseño. Objetivo: 1000-1500 palabras.
-  - RESULTS: Aplicar el Módulo de Resultados de Alto Impacto. Narrativa fluida, sin redundancia con tablas/figuras. Referencias explícitas a [INSERT TABLE/FIGURE X]. Si faltan visuales en el TFG, crear propuestas basadas en los datos. Objetivo: 2000-2500 palabras.
-  - DISCUSSION: Aplicar el Módulo de Discusión Interpretativa. Foco en interpretación, comparación y validez. Objetivo: 2000-2500 palabras.
-  - CONCLUSIONS: Aplicar el Módulo de Conclusiones de Alto Impacto. Asegurar la alineación con objetivos y la inclusión de aportes/futuras líneas. Objetivo: 500-800 palabras.
+  - INTRODUCTION: Apply the Strategic Introduction Module. Funnel structure (Context -> State of the Art -> GAP -> Justification -> Objectives/Hypotheses). Goal: 800-1000 words.
+  - METHODS: Apply the Total Reproducibility Methods Module and the Integrity and Formal Standards Module. Declare adherence to STROBE/CONSORT according to design. Goal: 1000-1500 words.
+  - RESULTS: Apply the High-Impact Results Module. Fluid narrative, no redundancy with tables/figures. Explicit references to [INSERT TABLE/FIGURE X]. If visuals are missing in the TFG, create proposals based on the data. Goal: 2000-2500 words.
+  - DISCUSSION: Apply the Interpretative Discussion Module. Focus on interpretation, comparison, and validity. Goal: 2000-2500 words.
+  - CONCLUSIONS: Apply the High-Impact Conclusions Module. Ensure alignment with objectives and inclusion of contributions/future lines. Goal: 500-800 words.
   - BIBLIOGRAPHY: Extract ALL references from the TFG (usually 20-50+). Use the EXACT format "1- [Reference text]" and put each on a NEW LINE. CRITICAL: Each reference must be a single continuous string without internal line breaks or carriage returns. NO HTML.
   
   TFG Text: ${tfgText.substring(0, 28000)}...`;
@@ -396,25 +401,26 @@ export async function refineArticle(currentArticle: string, instructions: string
   const prompt = `Refine the following scientific article based on these instructions: "${instructions}".
   
   CRITICAL RULES:
-  1. ADAPTACIÓN ESTRICTA A LA REVISTA: Maintain strict adherence to the journal rules for "${journalRules.name}".
-  2. RIGOR CIENTÍFICO Y ESTADÍSTICO (NIVEL Q1): Ensure high academic standards. Apply the Q1 High-Impact Pillars (Narrative/GAP, Transparency, Visual Impact, Active Voice, CRediT). Ensure the "STATISTICAL SUMMARY TABLE" is present in both Methods and the Tables section.
-  3. GESTIÓN DE TABLAS (CRÍTICO): El campo "tables" DEBE contener la representación íntegra en formato texto (pipes |) de TODAS las tablas identificadas (Table 1, Table 2, etc.) ADEMÁS de la "STATISTICAL SUMMARY TABLE". No te limites a la descripción; el usuario necesita los datos brutos formateados.
-  4. LEGIBILIDAD (PUNTOS Y APARTE OBLIGATORIOS): Es una exigencia absoluta usar puntos y aparte con frecuencia. NO generes bloques de texto densos. Cada idea principal o sección lógica DEBE tener su propio párrafo separado por un salto de línea doble (\n\n). Si un apartado tiene más de 150 palabras, debe estar dividido en al menos 2 o 3 párrafos.
-  5. PROTOCOLO DE VALIDACIÓN PARA REVISTAS Q1 (CHECKLIST DEL REVISOR): Actúa como un REVISOR SEVERO. Evalúa Título (precisión), Abstract (gancho/datos), GAP (hueco de conocimiento), Objetivos (explícitos), Justificación Metodológica, Originalidad (anti-provincialismo), Cirugía de Texto (concisión) y Conclusiones con impacto. Debes poblar el campo "q1Validation" con esta evaluación detallada (criterion, status, feedback).
-  6. AUTO-EVALUACIÓN Y CONSEJOS (CHECKLIST DE ALTO IMPACTO): Evalúa el manuscrito contra el checklist. Si faltan elementos o el TFG no los proporciona, genera consejos en "userMessages".
+  1. STRICT ADAPTATION TO THE JOURNAL: Maintain strict adherence to the journal rules for "${journalRules.name}".
+  2. SCIENTIFIC AND STATISTICAL RIGOR (Q1 LEVEL): Ensure high academic standards. Apply the Q1 High-Impact Pillars (Narrative/GAP, Transparency, Visual Impact, Active Voice, CRediT). Ensure the "STATISTICAL SUMMARY TABLE" is present in both Methods and the Tables section.
+  3. TABLE MANAGEMENT (CRITICAL): The "tables" field MUST contain the full text representation (pipes |) of ALL identified tables (Table 1, Table 2, etc.) PLUS the "STATISTICAL SUMMARY TABLE". Do not limit yourself to the description; the user needs the formatted raw data.
+  4. READABILITY (MANDATORY PARAGRAPH BREAKS): It is an absolute requirement to use paragraph breaks frequently. DO NOT generate dense blocks of text. Each main idea or logical section MUST have its own paragraph separated by a double line break (\n\n). If a section has more than 150 words, it must be divided into at least 2 or 3 paragraphs.
+  5. Q1 JOURNAL VALIDATION PROTOCOL (REVIEWER CHECKLIST): Act as a SEVERE REVIEWER. Evaluate Title (precision), Abstract (hook/data), GAP (knowledge gap), Objectives (explicit), Methodological Justification, Originality (anti-provincialism), Text Surgery (conciseness), and Impactful Conclusions. You must populate the "q1Validation" field with this detailed evaluation (criterion, status, feedback).
+  6. SELF-EVALUATION AND ADVICE (HIGH-IMPACT CHECKLIST): Evaluate the manuscript against the checklist. If elements are missing or the TFG does not provide them, generate advice in "userMessages".
   7. NO HTML TAGS: Do NOT use any HTML tags in any text field.
+  8. LANGUAGE: The entire manuscript and all fields in the JSON response MUST be written in ENGLISH.
   
   ${getQ1Modules(journalRules.name)}
   
   CONTENT GUIDELINES:
   - EXTENSION: Aim for 8000-10000 words total. EXPAND the content significantly to reach Elsevier's 25-30 page standard.
-  - INTRODUCTION: Aplicar el Módulo de Introducción Estratégica. Objetivo: 800-1000 palabras.
-  - METHODS: Aplicar el Módulo de Métodos de Reproduducibilidad Total y el Módulo de Integridad y Estándares Formales. Objetivo: 1000-1500 palabras.
-  - RESULTS: Aplicar el Módulo de Resultados de Alto Impacto. Objetivo: 2000-2500 palabras.
-  - DISCUSSION: Aplicar el Módulo de Discusión Interpretativa. Objetivo: 2000-2500 palabras.
-  - CONCLUSIONS: Aplicar el Módulo de Conclusiones de Alto Impacto. Objetivo: 500-800 palabras.
-  - COVER LETTER: Aplicar el Módulo de Cover Letter Persuasiva.
-  - VISUALS: Aplicar el Módulo de Inventario Visual Inteligente. Aim for 6-8 graphics and 1-3 tables.
+  - INTRODUCTION: Apply the Strategic Introduction Module. Goal: 800-1000 words.
+  - METHODS: Apply the Total Reproducibility Methods Module and the Integrity and Formal Standards Module. Goal: 1000-1500 words.
+  - RESULTS: Apply the High-Impact Results Module. Goal: 2000-2500 words.
+  - DISCUSSION: Apply the Interpretative Discussion Module. Goal: 2000-2500 words.
+  - CONCLUSIONS: Apply the High-Impact Conclusions Module. Goal: 500-800 words.
+  - COVER LETTER: Apply the Persuasive Cover Letter Module.
+  - VISUALS: Apply the Intelligent Visual Inventory Module. Aim for 6-8 graphics and 1-3 tables.
   
   Current Article: ${currentArticle.substring(0, 20000)}...`;
 
