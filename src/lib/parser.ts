@@ -1,8 +1,8 @@
-import * as mammoth from "mammoth";
+import mammoth from "mammoth";
 import { createRequire } from "module";
-const require = createRequire(import.meta.url);
 
-// pdf-parse is a CommonJS module
+const require = createRequire(import.meta.url);
+// Static require at top level helps Vercel's bundler find the dependency
 const pdf = require("pdf-parse");
 
 export async function extractTextFromPDF(buffer: Buffer): Promise<string> {
@@ -26,7 +26,22 @@ export async function extractTextFromPDF(buffer: Buffer): Promise<string> {
 export async function extractTextFromDocx(buffer: Buffer): Promise<string> {
   try {
     console.log(`Attempting extraction with mammoth. Buffer size: ${buffer.length} bytes`);
-    const result = await mammoth.extractRawText({ buffer: buffer });
+    
+    // Handle both default and namespace imports for maximum compatibility in ESM/CJS
+    const mammothObj = (mammoth as any).default || mammoth;
+    
+    if (!mammothObj || typeof mammothObj.extractRawText !== 'function') {
+      // Fallback: try to require it if import failed
+      try {
+        const mammothReq = require("mammoth");
+        const result = await mammothReq.extractRawText({ buffer: buffer });
+        return result.value;
+      } catch (e) {
+        throw new Error("Internal error: mammoth library not loaded correctly");
+      }
+    }
+    
+    const result = await mammothObj.extractRawText({ buffer: buffer });
     console.log(`DOCX extraction successful. Extracted ${result.value.length} characters.`);
     return result.value;
   } catch (error: any) {
