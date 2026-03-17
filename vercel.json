@@ -20,11 +20,23 @@
   ],
   "rewrites": [
     {
-      "source": "/api/:path*",
+      "source": "/api/parse-file",
+      "destination": "/api/parse-file.ts"
+    },
+    {
+      "source": "/api/debug-pdf",
+      "destination": "/api/debug-pdf.ts"
+    },
+    {
+      "source": "/api/health",
       "destination": "/api/index.ts"
     },
     {
-      "source": "/(.*)",
+      "source": "/api",
+      "destination": "/api/index.ts"
+    },
+    {
+      "source": "/((?!api/).*)",
       "destination": "/index.html"
     }
   ]
