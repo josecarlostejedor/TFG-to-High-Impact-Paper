@@ -1196,6 +1196,16 @@ ${result.userMessages.map((m, i) => `${i + 1}- ${m}`).join('\n')}
                         </button>
                       ))}
                       <button
+                        onClick={() => setActiveTab('q1Validation' as any)}
+                        className={cn(
+                          "px-4 py-2 rounded-lg text-sm font-medium transition-all capitalize flex items-center gap-1.5",
+                          activeTab === 'q1Validation' ? "bg-indigo-600 text-white" : "text-indigo-600 hover:bg-indigo-50 bg-indigo-50/50"
+                        )}
+                      >
+                        <FileCheck size={14} />
+                        Protocolo Q1
+                      </button>
+                      <button
                         onClick={() => setActiveTab('checklist' as any)}
                         className={cn(
                           "px-4 py-2 rounded-lg text-sm font-medium transition-all capitalize flex items-center gap-1.5",
@@ -1240,7 +1250,49 @@ ${result.userMessages.map((m, i) => `${i + 1}- ${m}`).join('\n')}
                           The AI has identified where your TFG data should be visualized. Look for placeholders like [TABLE X]. You can ask the AI to "Convert [TABLE X] into a Markdown table" using the refinement tool below.
                         </div>
                       )}
-                      {activeTab === 'checklist' ? (
+                      {activeTab === 'q1Validation' ? (
+                        <div className="space-y-6">
+                          <div className="p-6 bg-indigo-50 border border-indigo-100 rounded-2xl mb-6">
+                            <h3 className="text-indigo-800 font-bold flex items-center gap-2 mb-2">
+                              <FileCheck size={18} />
+                              Protocolo de Validación para Revistas Q1
+                            </h3>
+                            <p className="text-sm text-indigo-700 leading-relaxed">
+                              Este protocolo simula la revisión de un editor de revista de alto impacto (Q1). Evalúa la calidad científica, la narrativa y el rigor del manuscrito generado.
+                            </p>
+                          </div>
+                          <div className="grid grid-cols-1 gap-4">
+                            {result.q1Validation.map((item, i) => (
+                              <div key={i} className="p-5 bg-white border border-neutral-200 rounded-2xl shadow-sm flex items-start gap-4">
+                                <div className={cn(
+                                  "mt-1 w-8 h-8 rounded-full flex items-center justify-center shrink-0",
+                                  item.status === 'pass' ? "bg-emerald-100 text-emerald-600" : 
+                                  item.status === 'warning' ? "bg-amber-100 text-amber-600" : 
+                                  "bg-red-100 text-red-600"
+                                )}>
+                                  {item.status === 'pass' ? <CheckCircle2 size={18} /> : 
+                                   item.status === 'warning' ? <AlertCircle size={18} /> : 
+                                   <AlertCircle size={18} />}
+                                </div>
+                                <div className="space-y-1">
+                                  <h4 className="font-bold text-neutral-800">{item.criterion}</h4>
+                                  <p className="text-sm text-neutral-600 leading-relaxed">{item.feedback}</p>
+                                  <div className={cn(
+                                    "inline-block px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider mt-2",
+                                    item.status === 'pass' ? "bg-emerald-50 text-emerald-700" : 
+                                    item.status === 'warning' ? "bg-amber-50 text-amber-700" : 
+                                    "bg-red-50 text-red-700"
+                                  )}>
+                                    {item.status === 'pass' ? 'Cumplido' : 
+                                     item.status === 'warning' ? 'Mejorable' : 
+                                     'Crítico / Falta'}
+                                  </div>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      ) : activeTab === 'checklist' ? (
                         <div className="space-y-4">
                           {result.checklist.map((item, i) => (
                             <div key={i} className="flex items-start gap-3 p-4 bg-neutral-50 rounded-xl border border-neutral-100">
