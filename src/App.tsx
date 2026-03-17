@@ -294,15 +294,15 @@ export default function App() {
     const responseText = await response.text();
     
     if (!response.ok) {
-      let errorMessage = `Error del servidor: ${response.status}`;
+      let errorMessage = `Server error: ${response.status}`;
       
       // Check for specific Vercel/Server limits
       if (response.status === 504) {
-        errorMessage = "El servidor ha tardado demasiado (Timeout). Esto suele pasar con archivos muy grandes en Vercel. Por favor, intenta copiar y pegar el texto manualmente.";
+        errorMessage = "The server took too long (Timeout). This usually happens with very large files on Vercel. Please try copying and pasting the text manually.";
       } else if (response.status === 413) {
-        errorMessage = "El archivo es demasiado grande para enviarlo al servidor. Por favor, intenta copiar y pegar el texto directamente.";
+        errorMessage = "The file is too large to send to the server. Please try copying and pasting the text directly.";
       } else if (response.status === 500) {
-        errorMessage = "Error interno del servidor (500). Es posible que el archivo sea demasiado complejo o pesado para el procesamiento en la nube. Te recomendamos usar la entrada manual (Copiar/Pegar).";
+        errorMessage = "Internal server error (500). The file might be too complex or heavy for cloud processing. We recommend using manual input (Copy/Paste).";
       }
 
       try {
