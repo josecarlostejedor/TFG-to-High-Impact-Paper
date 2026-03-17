@@ -27,7 +27,7 @@ import { saveAs } from "file-saver";
 
 // Configure PDF.js worker
 // Using unpkg for better version reliability
-pdfjs.GlobalWorkerOptions.workerSrc = `https://unpkg.com/pdfjs-dist@4.4.168/build/pdf.worker.mjs`;
+pdfjs.GlobalWorkerOptions.workerSrc = `https://unpkg.com/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.mjs`;
 
 function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -131,7 +131,7 @@ export default function App() {
       const header = new Uint8Array(arrayBuffer.slice(0, 5));
       const headerStr = Array.from(header).map(b => String.fromCharCode(b)).join('');
       if (headerStr !== '%PDF-') {
-        throw new Error("El archivo no parece ser un PDF válido (falta la cabecera %PDF-).");
+        throw new Error("The file does not appear to be a valid PDF (missing %PDF- header).");
       }
 
       // Configure PDF.js to be as lightweight as possible
@@ -169,19 +169,19 @@ export default function App() {
       }
       
       if (text.trim().length === 0) {
-        throw new Error("El PDF no parece contener texto extraíble (podría ser un escaneo o imagen).");
+        throw new Error("The PDF does not appear to contain extractable text (it might be a scan or image).");
       }
 
       return text;
     } catch (err: any) {
       console.error("Local PDF extraction error:", err);
       if (err.name === 'PasswordException') {
-        throw new Error("El PDF está protegido con contraseña. Por favor, quita la protección o usa el pegado manual.");
+        throw new Error("The PDF is password protected. Please remove protection or use manual paste.");
       }
       if (err.message && err.message.includes('Worker')) {
-        throw new Error("Error al cargar el motor de PDF. Esto puede deberse a tu conexión o bloqueadores de anuncios. Por favor, usa el pegado manual.");
+        throw new Error("Error loading PDF engine. This may be due to your connection or ad blockers. Please use manual paste.");
       }
-      throw new Error(err.message || "Error en el procesamiento local del PDF");
+      throw new Error(err.message || "Error in local PDF processing");
     }
   };
 
@@ -199,10 +199,10 @@ export default function App() {
 
       // Check for unsupported formats
       if (lowerName.endsWith('.doc')) {
-        throw new Error("El formato .doc (Word antiguo) no es compatible. Por favor, guarda el archivo como .docx o usa el pegado manual.");
+        throw new Error("The .doc format (old Word) is not supported. Please save the file as .docx or use manual paste.");
       }
       if (lowerName.endsWith('.rtf') || lowerName.endsWith('.odt')) {
-        throw new Error("Este formato de archivo no es compatible directamente. Por favor, usa el pegado manual o convierte el archivo a .docx.");
+        throw new Error("This file format is not directly supported. Please use manual paste or convert the file to .docx.");
       }
       
       // 1. Archivos de texto plano
@@ -223,7 +223,7 @@ export default function App() {
           console.warn("Local PDF extraction failed, checking fallback:", localError);
           
           if (isLargeFile) {
-            throw new Error(`El PDF es demasiado grande (${(file.size / 1024 / 1024).toFixed(1)}MB) y la extracción local falló. Los servidores en la nube tienen límites estrictos (4.5MB). Por favor, intenta usar un archivo más pequeño o usa la entrada manual.`);
+            throw new Error(`The PDF is too large (${(file.size / 1024 / 1024).toFixed(1)}MB) and local extraction failed. Cloud servers have strict limits (4.5MB). Please try using a smaller file or use manual input.`);
           }
           
           // Fallback al backend solo para archivos pequeños
@@ -232,7 +232,7 @@ export default function App() {
             text = await callBackendParser(file);
           } catch (backendErr: any) {
             console.error("Backend parser also failed:", backendErr);
-            throw new Error(`No se pudo procesar el PDF ni localmente ni en el servidor: ${backendErr.message}`);
+            throw new Error(`Could not process PDF locally or on the server: ${backendErr.message}`);
           }
         }
       }
@@ -265,7 +265,7 @@ export default function App() {
       if (text && text.trim().length > 0) {
         setText(text);
       } else {
-        throw new Error("No se pudo extraer texto del archivo. El archivo podría estar vacío o ser una imagen sin texto.");
+        throw new Error("Could not extract text from file. The file might be empty or an image without text.");
       }
       
     } catch (err: any) {
@@ -499,7 +499,7 @@ ${result.visualInventory.map(item => `- ${item.id}: ${item.title}
 COVER LETTER:
 ${result.coverLetter}
 ${result.userMessages && result.userMessages.length > 0 ? `
-CONSEJOS PARA MEJORAR EL MANUSCRITO (CHECKLIST DE ALTO IMPACTO):
+ADVICE TO IMPROVE THE MANUSCRIPT (HIGH IMPACT CHECKLIST):
 ${result.userMessages.map((m, i) => `${i + 1}- ${m}`).join('\n')}
 ` : ""}
     `;
@@ -910,35 +910,35 @@ ${result.userMessages.map((m, i) => `${i + 1}- ${m}`).join('\n')}
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2 text-sm font-medium text-neutral-500 uppercase tracking-wider">
                   <FileText size={16} />
-                  Paso 1: Sube tu TFG
+                  Step 1: Upload your TFG
                 </div>
                 <button 
                   onClick={() => setShowManualInput(!showManualInput)}
                   className="text-xs text-emerald-600 hover:underline font-medium flex items-center gap-1"
                 >
                   {showManualInput ? <Upload size={12} /> : <FileText size={12} />}
-                  {showManualInput ? "Usar Subida de Archivo" : "Pegar Texto Manualmente"}
+                  {showManualInput ? "Use File Upload" : "Paste Text Manually"}
                 </button>
               </div>
 
               {showManualInput ? (
                 <div className="space-y-2">
                   <textarea
-                    placeholder="Pega aquí el texto de tu TFG..."
+                    placeholder="Paste your TFG text here..."
                     className="w-full h-48 bg-white border border-neutral-200 rounded-2xl p-4 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all resize-none text-sm"
                     value={tfgText}
                     onChange={(e) => {
                       setTfgText(e.target.value);
-                      if (e.target.value) setTfgFileName("Entrada Manual");
+                      if (e.target.value) setTfgFileName("Manual Entry");
                     }}
                   />
                   <div className="flex justify-between items-center">
                     <p className="text-[10px] text-neutral-400 italic">
-                      Tip: Si el lector de PDF falla, copia y pega el texto de tu documento aquí.
+                      Tip: If the PDF reader fails, copy and paste the text from your document here.
                     </p>
                     {tfgText && (
                       <span className="text-[10px] font-mono text-neutral-400">
-                        {tfgText.length.toLocaleString()} caracteres
+                        {tfgText.length.toLocaleString()} characters
                       </span>
                     )}
                   </div>
@@ -958,9 +958,9 @@ ${result.userMessages.map((m, i) => `${i + 1}- ${m}`).join('\n')}
                   </div>
                   <div>
                     <p className="font-medium">
-                      {isParsing ? "Leyendo archivo..." : (tfgText && !showManualInput ? "TFG Cargado con Éxito" : "Suelta tu TFG aquí")}
+                      {isParsing ? "Reading file..." : (tfgText && !showManualInput ? "TFG Loaded Successfully" : "Drop your TFG here")}
                     </p>
-                    <p className="text-xs text-neutral-400 mt-1">PDF, DOCX, o TXT</p>
+                    <p className="text-xs text-neutral-400 mt-1">PDF, DOCX, or TXT</p>
                     {tfgFileName && !showManualInput && (
                       <div className="flex flex-col items-center gap-1 mt-2">
                         <p className="text-xs font-mono text-emerald-600 bg-emerald-50 px-2 py-1 rounded inline-block">
@@ -968,7 +968,7 @@ ${result.userMessages.map((m, i) => `${i + 1}- ${m}`).join('\n')}
                         </p>
                         {tfgText && (
                           <span className="text-[10px] text-neutral-400">
-                            {tfgText.length.toLocaleString()} caracteres extraídos
+                            {tfgText.length.toLocaleString()} characters extracted
                           </span>
                         )}
                       </div>
@@ -1072,7 +1072,7 @@ ${result.userMessages.map((m, i) => `${i + 1}- ${m}`).join('\n')}
               >
                 <AlertCircle size={18} className="shrink-0 mt-0.5" />
                 <div className="space-y-3">
-                  <p className="font-bold">Problema con el archivo</p>
+                  <p className="font-bold">File Issue</p>
                   <p className="opacity-90 whitespace-pre-wrap leading-relaxed">{error}</p>
                   <div className="flex flex-wrap gap-2 pt-1">
                     <button
@@ -1080,13 +1080,13 @@ ${result.userMessages.map((m, i) => `${i + 1}- ${m}`).join('\n')}
                       className="px-3 py-1.5 bg-red-100 hover:bg-red-200 rounded-lg text-xs font-medium transition-colors flex items-center gap-1.5"
                     >
                       <FileText size={12} />
-                      Usar Entrada Manual (Copiar/Pegar)
+                      Use Manual Entry (Copy/Paste)
                     </button>
                     <button
                       onClick={() => setError(null)}
                       className="px-3 py-1.5 bg-white border border-red-200 hover:bg-red-50 rounded-lg text-xs font-medium transition-colors"
                     >
-                      Intentar de nuevo
+                      Try Again
                     </button>
                   </div>
                 </div>
@@ -1209,7 +1209,7 @@ ${result.userMessages.map((m, i) => `${i + 1}- ${m}`).join('\n')}
                         )}
                       >
                         <FileCheck size={14} />
-                        Protocolo Q1
+                        Q1 Protocol
                       </button>
                       <button
                         onClick={() => setActiveTab('checklist' as any)}
@@ -1230,7 +1230,7 @@ ${result.userMessages.map((m, i) => `${i + 1}- ${m}`).join('\n')}
                           )}
                         >
                           <AlertCircle size={14} />
-                          Mensajes al Usuario
+                          User Messages
                           <span className="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full border-2 border-white animate-pulse" />
                         </button>
                       )}
@@ -1261,10 +1261,10 @@ ${result.userMessages.map((m, i) => `${i + 1}- ${m}`).join('\n')}
                           <div className="p-6 bg-indigo-50 border border-indigo-100 rounded-2xl mb-6">
                             <h3 className="text-indigo-800 font-bold flex items-center gap-2 mb-2">
                               <FileCheck size={18} />
-                              Protocolo de Validación para Revistas Q1
+                              Validation Protocol for Q1 Journals
                             </h3>
                             <p className="text-sm text-indigo-700 leading-relaxed">
-                              Este protocolo simula la revisión de un editor de revista de alto impacto (Q1). Evalúa la calidad científica, la narrativa y el rigor del manuscrito generado.
+                              This protocol simulates the review of a high-impact journal editor (Q1). It evaluates the scientific quality, narrative, and rigor of the generated manuscript.
                             </p>
                           </div>
                           <div className="grid grid-cols-1 gap-4">
@@ -1289,9 +1289,9 @@ ${result.userMessages.map((m, i) => `${i + 1}- ${m}`).join('\n')}
                                     item.status === 'warning' ? "bg-amber-50 text-amber-700" : 
                                     "bg-red-50 text-red-700"
                                   )}>
-                                    {item.status === 'pass' ? 'Cumplido' : 
-                                     item.status === 'warning' ? 'Mejorable' : 
-                                     'Crítico / Falta'}
+                                    {item.status === 'pass' ? 'Passed' : 
+                                     item.status === 'warning' ? 'Improvable' : 
+                                     'Critical / Missing'}
                                   </div>
                                 </div>
                               </div>
@@ -1314,10 +1314,10 @@ ${result.userMessages.map((m, i) => `${i + 1}- ${m}`).join('\n')}
                           <div className="p-6 bg-amber-50 border border-amber-100 rounded-2xl mb-6">
                             <h3 className="text-amber-800 font-bold flex items-center gap-2 mb-2">
                               <AlertCircle size={18} />
-                              Consejos para mejorar tu manuscrito
+                              Advice to improve your manuscript
                             </h3>
                             <p className="text-sm text-amber-700 leading-relaxed">
-                              Basado en el checklist de revistas de alto impacto, he identificado algunos aspectos que podrían fortalecerse. Estos puntos no pudieron ser completados o mejorados totalmente debido a falta de información en el TFG original:
+                              Based on the high-impact journal checklist, I have identified some aspects that could be strengthened. These points could not be fully completed or improved due to a lack of information in the original TFG:
                             </p>
                           </div>
                           {result.userMessages?.map((message, i) => (
@@ -1382,7 +1382,7 @@ ${result.userMessages.map((m, i) => `${i + 1}- ${m}`).join('\n')}
                                       <span className="text-neutral-400 font-medium">Page Number:</span>
                                       <span className={cn(
                                         "font-medium",
-                                        item.pageNumber === "crear figura" ? "text-amber-600" : "text-neutral-600"
+                                        item.pageNumber === "create figure" ? "text-amber-600" : "text-neutral-600"
                                       )}>
                                         {item.pageNumber}
                                       </span>
