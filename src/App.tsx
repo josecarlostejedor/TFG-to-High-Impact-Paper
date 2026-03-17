@@ -27,7 +27,7 @@ import { saveAs } from "file-saver";
 
 // Configure PDF.js worker
 // Using unpkg for better version reliability
-pdfjs.GlobalWorkerOptions.workerSrc = `https://unpkg.com/pdfjs-dist@4.4.168/build/pdf.worker.min.mjs`;
+pdfjs.GlobalWorkerOptions.workerSrc = `https://unpkg.com/pdfjs-dist@4.4.168/build/pdf.worker.mjs`;
 
 function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
