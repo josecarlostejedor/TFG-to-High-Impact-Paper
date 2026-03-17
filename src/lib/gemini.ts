@@ -103,15 +103,28 @@ export async function generateArticle(tfgText: string, journalRules: JournalRule
   3. VERIFICACIÓN Y CÁLCULO: Validar la coherencia prueba-variable. Si faltan tamaños del efecto, CALCULARLOS (t-test -> d=2t/√gl; ANOVA -> η²=F·gl_e/(F·gl_e+gl_d); Chi-sq -> V=√(χ²/(n·min(k-1,r-1)))).
   4. REPORTE EN RESULTADOS: Reporte riguroso en Resultados con estadísticos completos.
   
-  MEJORAS CRÍTICAS PARA ALTO IMPACTO (Nivel AJOG):
-  1. FOCO Y NOVEDAD: Identificar el hallazgo más importante y hacerlo el eje del artículo (título específico, no genérico). Incluir declaración de novedad explícita ("To our knowledge...") e hipótesis comprobable.
-  2. ANÁLISIS MULTIVARIANTE: Si hay múltiples variables, aplicar regresión multivariante ajustando por confusores (edad, IMC, etc.). Reportar Adjusted OR/Coefficients con IC95%.
-  3. JUSTIFICACIÓN MUESTRAL: Si n es pequeño, incluir advertencia explícita y sugerir cálculo de poder post-hoc.
-  4. DISCUSIÓN PROFUNDA: Comparación CUANTITATIVA con literatura (usar números de otros estudios), explicaciones MECANÍSTICAS para los hallazgos e implicaciones clínicas CONCRETAS.
-  5. PRESENTACIÓN PROFESIONAL: Tablas estilo AJOG (comparaciones entre grupos, valores p). Descripciones de figuras EXHAUSTIVAS (ejes, símbolos, estadísticas).
-  6. REFERENCIAS VANCOUVER: Formato estricto (Autores. Título. Revista. Año;Vol(Num):Pág. DOI).
-  7. LIMITACIONES HONESTAS: Sección completa que aborde sesgos, tamaño muestral y generalizabilidad.
-  8. AUTO-EVALUACIÓN Y CONSEJOS (CHECKLIST DE ALTO IMPACTO):
+  MEJORAS CRÍTICAS PARA ALTO IMPACTO (Nivel Q1):
+  1. RELEVANCIA Y NARRATIVA (STORYTELLING):
+     - Identificar explícitamente el "GAP" (hueco de conocimiento) y el "HOOK" (gancho) en el Abstract e Introducción.
+     - Transformar la Pregunta de Investigación en el eje central del Abstract.
+     - Títulos SEO/Académicos: Generar propuestas cortas, descriptivas y con palabras clave de alto impacto (Scopus/WoS).
+  2. RIGOR Y TRANSPARENCIA (TRUST FACTOR):
+     - Declaración de Disponibilidad de Datos: Incluir en "acknowledgments" o al final de "methods" cómo acceder a los datos.
+     - Limitaciones del Estudio: No esconder defectos; discutirlos honestamente en una subsección de la Discusión.
+     - Criterios de INCLUSIÓN/EXCLUSIÓN: Obligatorios en la sección de Métodos para garantizar reproducibilidad.
+  3. IMPACTO VISUAL AVANZADO:
+     - Sugerencia de Gráficos: En el "visualInventory", sugerir el tipo de gráfico ideal (ej. Boxplot para varianza, Forest plot para meta-análisis).
+     - Leyendas Auto-explicativas: Las leyendas deben describir qué es, cómo se obtuvo, n= y significado de barras de error/símbolos.
+     - Tabla 1 (Baseline): La primera tabla debe ser siempre la de características basales/demográficas de la muestra.
+  4. IDIOMA Y ESTILO ACADÉMICO:
+     - Preferencia por Voz Activa: Cambiar "It was found" por "We found" o "The results reveal".
+     - Vocabulario Técnico: Usar terminología formal (ej. "examine" en lugar de "look at").
+     - Consistencia: Mantener el mismo término para un concepto en todo el artículo (ej. no mezclar "subjects" y "participants").
+  5. VALIDACIÓN EDITORIAL Y ÉTICA:
+     - Contribuciones CRediT: Generar el párrafo detallado en "creditStatement".
+     - Conflicto de Intereses: Incluir declaración estándar en "acknowledgments".
+     - Extensión: Ajustar a 3000-5000 palabras, expandiendo el contenido del TFG con profundidad académica.
+  6. AUTO-EVALUACIÓN Y CONSEJOS (CHECKLIST DE ALTO IMPACTO):
      Evalúa el manuscrito contra este checklist. Si algún punto NO se cumple o falta información en el TFG, genera un consejo en "userMessages".
      
      NIVEL 1: CRÍTICO
@@ -213,7 +226,7 @@ export async function refineArticle(currentArticle: string, instructions: string
   
   CRITICAL RULES:
   1. ADAPTACIÓN ESTRICTA A LA REVISTA: Maintain strict adherence to the journal rules for "${journalRules.name}".
-  2. RIGOR CIENTÍFICO Y ESTADÍSTICO: Ensure high academic standards. Apply the Advanced Statistical Analysis System and High-Impact Improvements. Ensure the "STATISTICAL SUMMARY TABLE" is present in both Methods and the Tables section.
+  2. RIGOR CIENTÍFICO Y ESTADÍSTICO (NIVEL Q1): Ensure high academic standards. Apply the Q1 High-Impact Pillars (Narrative/GAP, Transparency, Visual Impact, Active Voice, CRediT). Ensure the "STATISTICAL SUMMARY TABLE" is present in both Methods and the Tables section.
   3. AUTO-EVALUACIÓN Y CONSEJOS (CHECKLIST DE ALTO IMPACTO): Evalúa el manuscrito contra el checklist. Si faltan elementos o el TFG no los proporciona, genera consejos en "userMessages".
   4. NO HTML TAGS: Do NOT use any HTML tags in any text field.
   5. VISUAL INVENTORY: Update the visual inventory if the instructions affect tables or figures. Include page numbers for figures (or "crear figura").
