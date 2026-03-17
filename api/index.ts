@@ -1,5 +1,5 @@
 import express from "express";
-import { extractTextFromPDF, extractTextFromDocx } from "../src/lib/parser.js";
+import { extractTextFromPDF, extractTextFromDocx } from "../src/lib/parser";
 
 const app = express();
 app.use(express.json({ limit: "50mb" }));
@@ -28,8 +28,9 @@ app.post("/api/parse-file", async (req, res) => {
     let buffer;
     try {
       buffer = Buffer.from(base64, 'base64');
-    } catch (e) {
-      return res.status(400).json({ error: "Datos de archivo corruptos (Base64 inválido)" });
+    } catch (e: any) {
+      console.error("Base64 decoding failed:", e);
+      return res.status(400).json({ error: `Datos de archivo corruptos (Base64 inválido): ${e.message}` });
     }
 
     let text = "";
@@ -58,13 +59,13 @@ app.post("/api/parse-file", async (req, res) => {
 
     return res.json({ text });
   } catch (error: any) {
-    console.error("Global Error parsing file:", error);
+    console.error("Global Error parsing file in API:", error);
     // Return a more descriptive error if it's a module resolution issue
     const isModuleError = error.code === 'ERR_MODULE_NOT_FOUND' || error.message.includes('Cannot find module');
     return res.status(500).json({ 
       error: isModuleError 
-        ? `Error de configuración del servidor (Módulo no encontrado). Por favor, contacta con soporte.`
-        : `Error del servidor al procesar el archivo: ${error.message}. Esto suele ocurrir con archivos muy complejos. Te recomendamos usar el pegado manual.` 
+        ? `Error de configuración del servidor (Módulo no encontrado: ${error.message}). Por favor, contacta con soporte.`
+        : `Error del servidor al procesar el archivo: ${error.message}.` 
     });
   }
 });
