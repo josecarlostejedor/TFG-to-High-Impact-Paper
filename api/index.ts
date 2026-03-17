@@ -5,19 +5,28 @@ const app = express();
 app.use(express.json({ limit: "50mb" }));
 app.use(express.urlencoded({ limit: "50mb", extended: true }));
 
-app.get("/api/health", (req, res) => {
-  res.json({ status: "ok", time: new Date().toISOString(), environment: "vercel" });
+app.get(["/api/health", "/health"], (req, res) => {
+  res.json({ 
+    status: "ok", 
+    time: new Date().toISOString(), 
+    environment: "vercel",
+    url: req.url,
+    originalUrl: req.originalUrl
+  });
 });
 
-app.post("/api/parse-file", async (req, res) => {
+app.post(["/api/parse-file", "/parse-file"], async (req, res) => {
   try {
     const { base64, mimeType, fileName } = req.body;
+    
+    console.log(`API Request: ${req.method} ${req.url} (Original: ${req.originalUrl})`);
 
     if (!base64) {
+      console.error("No base64 data in request body");
       return res.status(400).json({ error: "No file data received" });
     }
 
-    console.log(`Parsing file: ${fileName} (${mimeType}) via Vercel Function. Size: ${base64.length} chars`);
+    console.log(`Parsing file: ${fileName} (${mimeType}). Base64 length: ${base64.length}`);
     
     if (base64.length > 4.4 * 1024 * 1024) {
       return res.status(413).json({ 
