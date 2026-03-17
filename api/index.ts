@@ -1,5 +1,5 @@
 import express from "express";
-import { extractTextFromPDF, extractTextFromDocx } from "../src/lib/parser.js";
+import { extractTextFromPDF, extractTextFromDocx } from "../src/lib/parser";
 
 const app = express();
 app.use(express.json({ limit: "50mb" }));
