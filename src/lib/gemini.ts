@@ -96,6 +96,15 @@ export async function generateArticle(tfgText: string, journalRules: JournalRule
   2. RIGOR CIENTÍFICO ABSOLUTO: Impeccable methodology, robust statistics, critical discussion. Identify and address weaknesses.
   3. NO HTML TAGS: Do NOT use any HTML tags like <br>, <b>, <table>, etc. in any text field. Use plain text with standard line breaks.
   
+  MÓDULO: COVER LETTER PERSUASIVA (ESTÁNDAR Q1):
+  La carta de presentación es una herramienta para persuadir al editor. No debe ser una plantilla estándar ni repetir el resumen.
+  1. TONO: Ligeramente más informal que el artículo, dirigida directamente al editor.
+  2. ESTRUCTURA (2-3 párrafos):
+     - Párrafo 1: Datos formales (título, autores, extensión, nº tablas/figuras). Declaración formal de que es un trabajo inédito y no enviado a otra revista.
+     - Párrafo 2: Defensa de fortalezas. Subrayar originalidad, qué aporta de nuevo a la disciplina y premisas básicas.
+     - Párrafo 3: Idoneidad de la revista. Explicar por qué "${journalRules.name}" es el lugar ideal, vinculando el hallazgo con el alcance de la revista.
+  3. OBJETIVO: Convencer al editor de que el trabajo tiene el alcance e importancia necesarios para ser revisado.
+  
   MÓDULO: INVENTARIO VISUAL INTELIGENTE (ESTÁNDAR Q1):
   Tu tarea es transformar los datos dispersos (texto, tablas crudas, figuras preliminares) en una estrategia de presentación de nivel Q1. Actúa como un editor gráfico y científico.
   
@@ -142,7 +151,8 @@ export async function generateArticle(tfgText: string, journalRules: JournalRule
      - Contribuciones CRediT: Generar el párrafo detallado en "creditStatement".
      - Conflicto de Intereses: Incluir declaración estándar en "acknowledgments".
      - Extensión: Ajustar a 3000-5000 palabras, expandiendo el contenido del TFG con profundidad académica.
-
+     - Cover Letter Q1: Aplicar el módulo de Cover Letter Persuasiva para defender la importancia del estudio ante el editor.
+  
   PROTOCOLO DE VALIDACIÓN PARA REVISTAS Q1 (CHECKLIST DEL REVISOR):
   Eres un asistente experto en publicaciones de alto impacto. Antes de dar por finalizado el artículo, debes actuar como un REVISOR SEVERO PERO CONSTRUCTIVO. Revisa el borrador del artículo y aplícale los siguientes filtros de calidad de forma iterativa. Si encuentras que algún punto no se cumple, debes reescribir o sugerir al usuario (mediante comentarios entre corchetes [ ]) los cambios necesarios para alcanzar el estándar Q1.
 
@@ -282,6 +292,7 @@ export async function refineArticle(currentArticle: string, instructions: string
   6. INVENTARIO VISUAL INTELIGENTE: Asegurar que la presentación de datos sea óptima, no redundante y autosuficiente. Actualizar el visual inventory si las instrucciones afectan a tablas o figuras. Incluir números de página para figuras (o "crear figura").
   7. METHODS FORMAT: Use new lines for subsections (e.g., STUDY POPULATION:\n[Text]).
   8. BIBLIOGRAPHY: Extract ALL references. Use the format "1- [Reference text]" on new lines.
+  9. COVER LETTER Q1: Asegurar que la carta de presentación sea persuasiva, incluya declaraciones de originalidad, datos formales y justifique la idoneidad para la revista.
   
   Current Article: ${currentArticle.substring(0, 20000)}...`;
 
