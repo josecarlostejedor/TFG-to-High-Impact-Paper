@@ -96,6 +96,18 @@ export async function generateArticle(tfgText: string, journalRules: JournalRule
   2. RIGOR CIENTÍFICO ABSOLUTO: Impeccable methodology, robust statistics, critical discussion. Identify and address weaknesses.
   3. NO HTML TAGS: Do NOT use any HTML tags like <br>, <b>, <table>, etc. in any text field. Use plain text with standard line breaks.
   
+  MÓDULO: CONCLUSIONES DE ALTO IMPACTO (ESTÁNDAR Q1):
+  Las conclusiones deben ser una síntesis potente alineada con los objetivos.
+  1. ESTRUCTURA OBLIGATORIA:
+     a) Conclusión General: Alineada al objetivo general, integrando el resultado principal.
+     b) Resultados Principales: Vinculados directamente a los objetivos específicos.
+     c) Aportes, Beneficios y Futuro: Resaltar la utilidad de los hallazgos, proponer 1-2 líneas de trabajo futuro y mencionar limitaciones críticas.
+  2. REGLAS DE ORO:
+     - No incorporar elementos no tratados en la investigación.
+     - No usar el marco teórico para reforzar resultados.
+     - Evitar juicios de valor personales sobre la importancia de los resultados.
+     - Los aportes pueden referirse tanto al resultado general como a los específicos.
+
   MÓDULO: COVER LETTER PERSUASIVA (ESTÁNDAR Q1):
   La carta de presentación es una herramienta para persuadir al editor. No debe ser una plantilla estándar ni repetir el resumen.
   1. TONO: Ligeramente más informal que el artículo, dirigida directamente al editor.
@@ -210,7 +222,7 @@ export async function generateArticle(tfgText: string, journalRules: JournalRule
   - INTRODUCTION: Use the "funnel" structure (Context -> State of the Art -> Gap -> Hypothesis/Objective).
   - METHODS: Surgical detail on Design, Population, Variables, Procedures, and Statistical Analysis. Use new lines (punto y aparte) for each subsection (e.g., STUDY POPULATION:\n[Text]\n\nDATA COLLECTION:\n[Text]).
   - RESULTS: Narrative flow with explicit table/figure references. Include ALL stats (p-values, CIs).
-  - DISCUSSION: Deep interpretation (Findings -> Context -> Implications -> Limitations -> Strengths).
+  - CONCLUSIONS: Aplicar el Módulo de Conclusiones de Alto Impacto. Asegurar la alineación con objetivos y la inclusión de aportes/futuras líneas.
   - BIBLIOGRAPHY: Extract ALL references from the TFG (usually 15-20+). Use the EXACT format "1- [Reference text]" and put each on a NEW LINE. NO HTML.
   
   TFG Text: ${tfgText.substring(0, 28000)}...`;
@@ -293,6 +305,7 @@ export async function refineArticle(currentArticle: string, instructions: string
   7. METHODS FORMAT: Use new lines for subsections (e.g., STUDY POPULATION:\n[Text]).
   8. BIBLIOGRAPHY: Extract ALL references. Use the format "1- [Reference text]" on new lines.
   9. COVER LETTER Q1: Asegurar que la carta de presentación sea persuasiva, incluya declaraciones de originalidad, datos formales y justifique la idoneidad para la revista.
+  10. CONCLUSIONES Q1: Aplicar la estructura de Conclusión General -> Resultados Específicos -> Aportes/Futuro.
   
   Current Article: ${currentArticle.substring(0, 20000)}...`;
 
