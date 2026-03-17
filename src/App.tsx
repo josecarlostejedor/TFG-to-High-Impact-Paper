@@ -212,42 +212,53 @@ export default function App() {
       // 2. PDF: Intentar primero en el navegador para evitar límites de servidor
       else if (file.type === 'application/pdf' || file.name.endsWith('.pdf')) {
         // Vercel tiene un límite de 4.5MB para el cuerpo de la petición.
-        // Un archivo de 3MB en Base64 ya roza los 4MB.
-        const isLargeFile = file.size > 3 * 1024 * 1024;
+        // Un archivo de 3.2MB en Base64 ya roza los 4.3MB.
+        const isLargeFile = file.size > 3.2 * 1024 * 1024;
         
         try {
-          console.log("Attempting local PDF extraction...");
+          console.log(`Attempting local PDF extraction for ${file.name} (${(file.size / 1024).toFixed(1)} KB)...`);
           text = await extractTextFromPDFLocally(file);
           console.log("Local PDF extraction succeeded!");
         } catch (localError: any) {
-          console.log("Local PDF extraction failed, checking fallback...", localError);
+          console.warn("Local PDF extraction failed, checking fallback:", localError);
           
           if (isLargeFile) {
-            throw new Error(`El PDF es demasiado grande (${(file.size / 1024 / 1024).toFixed(1)}MB) y la extracción local falló. Los servidores en la nube tienen límites estrictos (4.5MB). Por favor, usa la entrada manual.`);
+            throw new Error(`El PDF es demasiado grande (${(file.size / 1024 / 1024).toFixed(1)}MB) y la extracción local falló. Los servidores en la nube tienen límites estrictos (4.5MB). Por favor, intenta usar un archivo más pequeño o usa la entrada manual.`);
           }
           
           // Fallback al backend solo para archivos pequeños
           console.log("Falling back to backend parser...");
-          text = await callBackendParser(file);
+          try {
+            text = await callBackendParser(file);
+          } catch (backendErr: any) {
+            console.error("Backend parser also failed:", backendErr);
+            throw new Error(`No se pudo procesar el PDF ni localmente ni en el servidor: ${backendErr.message}`);
+          }
         }
       }
       // 3. DOCX: Intentar primero en el navegador
       else if (file.name.endsWith('.docx') || file.type === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document') {
-        const isLargeFile = file.size > 3 * 1024 * 1024;
+        const isLargeFile = file.size > 3.2 * 1024 * 1024;
         try {
-          console.log("Attempting local DOCX extraction...");
+          console.log(`Attempting local DOCX extraction for ${file.name}...`);
           const arrayBuffer = await readFileAsArrayBuffer(file);
           const result = await mammoth.extractRawText({ arrayBuffer });
           text = result.value;
           console.log("Local DOCX extraction successful");
         } catch (docxErr) {
-          console.error("Local DOCX extraction failed, checking fallback:", docxErr);
+          console.warn("Local DOCX extraction failed, checking fallback:", docxErr);
           
           if (isLargeFile) {
-            throw new Error(`El archivo Word es demasiado grande (${(file.size / 1024 / 1024).toFixed(1)}MB) y la extracción local falló. Por favor, usa la entrada manual.`);
+            throw new Error(`El archivo Word es demasiado grande (${(file.size / 1024 / 1024).toFixed(1)}MB) y la extracción local falló. Por favor, intenta usar un archivo más pequeño o usa la entrada manual.`);
           }
           
-          text = await callBackendParser(file);
+          console.log("Falling back to backend parser...");
+          try {
+            text = await callBackendParser(file);
+          } catch (backendErr: any) {
+            console.error("Backend DOCX parser also failed:", backendErr);
+            throw new Error(`No se pudo procesar el archivo Word ni localmente ni en el servidor: ${backendErr.message}`);
+          }
         }
       }
       
