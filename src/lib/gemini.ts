@@ -60,7 +60,7 @@ const getQ1Modules = (journalName: string) => `
      - Texto plano: Para hallazgos simples (1-2 datos).
      - Tablas: Para comparaciones complejas, demografía y modelos estadísticos.
      - Figuras/Gráficos: Para tendencias, distribuciones y relaciones visuales.
-  3. CREACIÓN PROACTIVA: Si el TFG carece de tablas o gráficos pero los datos lo permiten, DEBES crear propuestas de tablas/figuras nuevas (indicando "crear tabla/figura" en el inventario) para elevar la calidad del artículo.
+  3. CREACIÓN PROACTIVA Y RIGOR ESTADÍSTICO: Si el TFG carece de tablas o gráficos pero los datos lo permiten, DEBES crear propuestas de tablas/figuras nuevas. Es OBLIGATORIO incluir estadísticos de dispersión y precisión (IC95%, DE, Error Estándar) en el reporte de los hallazgos principales para elevar la calidad científica.
   4. FLUJO NARRATIVO: Organizar los resultados siguiendo la lógica de los objetivos. Cada párrafo debe invocar a su tabla/figura correspondiente (Ej: "Como se muestra en la Tabla 1...").
 
   MÓDULO: INTEGRIDAD Y ESTÁNDARES FORMALES (ESTÁNDAR Q1):
@@ -125,7 +125,7 @@ const getQ1Modules = (journalName: string) => `
   MÓDULO: CONCLUSIONES DE ALTO IMPACTO (ESTÁNDAR Q1):
   Las conclusiones sintetizan los resultados en función de los objetivos trazados.
   1. REGLA DE ORO (ALINEACIÓN): Las conclusiones se construyen con los resultados obtenidos, pero SIEMPRE alineados a los objetivos del estudio.
-  2. ESTRUCTURA OBLIGATORIA Y ORDEN (a, b, c):
+  2. ESTRUCTURA OBLIGATORIA Y ORDEN (a, b, c) - USAR ETIQUETAS EXPLÍCITAS:
      a) Conclusión General: Señalar la conclusión general alineada al cumplimiento del objetivo general, incluyendo el resultado principal.
      b) Resultados Principales: Señalar los hallazgos relacionados con los objetivos específicos.
      c) Aportes, Beneficios y Futuro: Resaltar aportes y beneficios de los resultados (tanto generales como específicos). Incluir 1-2 recomendaciones de trabajo futuro. Mencionar limitaciones (aquello que no se haya podido demostrar) para guiar a otros investigadores.
@@ -308,7 +308,7 @@ export async function generateArticle(tfgText: string, journalRules: JournalRule
   - RESULTS: Aplicar el Módulo de Resultados de Alto Impacto. Narrativa fluida, sin redundancia con tablas/figuras. Referencias explícitas a [INSERT TABLE/FIGURE X]. Si faltan visuales en el TFG, crear propuestas basadas en los datos.
   - DISCUSSION: Aplicar el Módulo de Discusión Interpretativa. Foco en interpretación, comparación y validez.
   - CONCLUSIONS: Aplicar el Módulo de Conclusiones de Alto Impacto. Asegurar la alineación con objetivos y la inclusión de aportes/futuras líneas.
-  - BIBLIOGRAPHY: Extract ALL references from the TFG (usually 15-20+). Use the EXACT format "1- [Reference text]" and put each on a NEW LINE. Ensure each reference is a single continuous string without internal line breaks. NO HTML.
+  - BIBLIOGRAPHY: Extract ALL references from the TFG (usually 15-20+). Use the EXACT format "1- [Reference text]" and put each on a NEW LINE. CRITICAL: Each reference must be a single continuous string without internal line breaks or carriage returns. NO HTML.
   
   TFG Text: ${tfgText.substring(0, 28000)}...`;
 
