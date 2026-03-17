@@ -7,7 +7,7 @@ app.get(["/api/health", "/health", "/api"], (req, res) => {
     status: "ok", 
     time: new Date().toISOString(), 
     environment: "vercel",
-    endpoints: ["/api/parse-file", "/api/health"]
+    endpoints: ["/api/parse-file", "/api/debug-pdf", "/api/health"]
   });
 });
 
